@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from accounts.models import CustomUserModel
+from .models import Family
 
 class InviteUserSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
@@ -17,3 +18,10 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUserModel
         fields = ['email', 'first_name', 'last_name']  
+
+class FamilySerializer(serializers.ModelSerializer):
+    members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = Family
+        fields = ['name', 'members']

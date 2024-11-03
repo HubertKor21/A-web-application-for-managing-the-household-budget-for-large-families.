@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import CustomUserModel
+from invitations.models import Family
 
 
 
@@ -16,4 +17,5 @@ class Groups(models.Model):
     groups_title = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     groups_author = models.ForeignKey(CustomUserModel, on_delete=models.CASCADE, related_name='authored_groups')
-    category = models.ForeignKey(Category, related_name='groups', on_delete=models.CASCADE  ,null=True, blank=True)
+    categories = models.ManyToManyField(Category, related_name='groups')  # Zmiana z ForeignKey na ManyToManyField
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, null=True,blank=True)

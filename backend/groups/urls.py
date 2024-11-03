@@ -3,5 +3,5 @@ from . import views
 
 urlpatterns = [
     path('groups/', views.GroupsCreateView.as_view(), name='groups-list'),
-    path('groups/category/', views.CategoryView.as_view(), name='category-list'),
+    path('groups/<int:pk>/add-categories/', views.AddCategoryToGroupView.as_view(), name='category-list'),
 ]

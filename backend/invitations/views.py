@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 
 class InviteUserView(views.APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = InviteUserSerializer
 
     def post(self, request):
         serializer = InviteUserSerializer(data=request.data)
@@ -29,8 +30,6 @@ class InviteUserView(views.APIView):
     def invite_user(self, email, family_name):
         try:
             user = CustomUserModel.objects.get(email=email)
-
-            # Dodaj użytkownika do rodziny
             family, created = Family.objects.get_or_create(name=family_name, defaults={'created_by': user})
             
             if user in family.members.all():
@@ -38,14 +37,9 @@ class InviteUserView(views.APIView):
             
             family.members.add(user)
             family.save()
-
-            # Generowanie UUID jako token
-            token = uuid.uuid4().hex  # Generuje unikalny token w formacie hex
-
-            # Tworzenie pełnego URL do zaproszenia
+            token = uuid.uuid4().hex  
             invite_url = f"{settings.FRONTEND_URL}api/v1/confirm-invite/{token}/"  # Upewnij się, że masz prawidłowy URL
 
-            # Wysyłanie e-maila z zaproszeniem
             send_mail(
                 'You have been invited!',
                 f'You have been invited to join the family {family_name}. Click the link to accept: {invite_url}',
@@ -60,6 +54,8 @@ class InviteUserView(views.APIView):
         
 class ConfirmInvitationView(views.APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = ConfirmInvitationSerializer
+
 
     def post(self, request, token):
         serializer = ConfirmInvitationSerializer(data={'token':token})
@@ -72,6 +68,7 @@ class ConfirmInvitationView(views.APIView):
         
 class FamilyMembersView(views.APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = CustomUserSerializer
     
     def get(self , request, family_id):
         try:
