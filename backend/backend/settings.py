@@ -197,7 +197,8 @@ REST_AUTH = {
 
 # cors headers
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:8000",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
@@ -213,4 +214,4 @@ AUTH_USER_MODEL = "accounts.CustomUserModel"
 
 DJANGO_REST_INVITATION_TOKEN_EXPIRY_TIME = 24 
 
-FRONTEND_URL = "http://127.0.0.1:8000/"
+FRONTEND_URL = "http://127.0.0.1:5173/"

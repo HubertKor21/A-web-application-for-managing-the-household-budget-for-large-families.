@@ -18,14 +18,15 @@ from django.contrib import admin
 from drf_spectacular.views import SpectacularAPIView
 from drf_spectacular.views import SpectacularRedocView
 from drf_spectacular.views import SpectacularSwaggerView
-from accounts.views import email_confirmation
+from accounts.views import email_confirmation, reset_password_confirm, GoogleLogin
 from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
+    path('dj-rest-auth/registration/account-confirm-email/<str:key>/', email_confirmation),
     path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
-    path('reset/password/confirm/<int:uid>/<str:token>/', email_confirmation, name="password_reser_confirm" ),
+    path('reset/password/confirm/<int:uid>/<str:token>', reset_password_confirm, name="password_reset_confirm"),
     path('api/', include('groups.urls')),
     path('api/', include('invitations.urls')),
     # Spectacular Endpoints

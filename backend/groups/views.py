@@ -4,6 +4,7 @@ from .serializers import GroupsSerializers, CategorySerializer
 from .models import Groups, Category
 from invitations.models import Family
 from django.shortcuts import get_object_or_404
+
 # Create your views here.
 class GroupsCreateView(generics.ListCreateAPIView):
     serializer_class = GroupsSerializers
@@ -18,19 +19,14 @@ class GroupsCreateView(generics.ListCreateAPIView):
             return Groups.objects.none()
 
     def perform_create(self, serializer):
-        if serializer.is_valid():
-            family = Family.objects.get(members=self.request.user)
-            serializer.save(groups_author=self.request.user, family=family)
-        else:
-            print(serializer.errors)
-
+        family = Family.objects.get(members=self.request.user)
+        serializer.save(groups_author=self.request.user, family=family)
 
 class AddCategoryToGroupView(generics.ListCreateAPIView):
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Get all categories associated with the specified group for the authenticated user
         group_id = self.kwargs.get('pk')
         group = get_object_or_404(Groups, id=group_id, groups_author=self.request.user)
         return group.categories.all()
@@ -38,5 +34,9 @@ class AddCategoryToGroupView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         group_id = self.kwargs.get('pk')
         group = get_object_or_404(Groups, id=group_id, groups_author=self.request.user)
+
+        # Save the category and associate it with the group
         category = serializer.save(category_author=self.request.user)
-        group.categories.add(category)
+        group.categories.add(category)  # Add the new category to the group
+
+        return category

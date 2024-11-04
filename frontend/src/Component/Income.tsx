@@ -107,7 +107,7 @@ const IncomeSection: React.FC<{
             Zapisz Kategorię
           </button>
           <form method="dialog" className="modal-backdrop">
-            <button type="button" onClick={handleModalClose} className="mt-2">Zamknij</button>
+            <button type="button" onClick={handleModalClose} className="mt-2 text-white">Zamknij</button>
           </form>
         </div>
       </dialog>
