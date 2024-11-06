@@ -29,6 +29,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'accounts.CustomUserModel'
 
 # Application definition
 
@@ -56,9 +57,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     # local app
-    "accounts",
     'groups',
     'invitations',
+    'transactions',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -215,3 +217,4 @@ AUTH_USER_MODEL = "accounts.CustomUserModel"
 DJANGO_REST_INVITATION_TOKEN_EXPIRY_TIME = 24 
 
 FRONTEND_URL = "http://127.0.0.1:5173/"
+

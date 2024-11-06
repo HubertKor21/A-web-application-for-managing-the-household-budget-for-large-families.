@@ -29,6 +29,7 @@ urlpatterns = [
     path('reset/password/confirm/<int:uid>/<str:token>', reset_password_confirm, name="password_reset_confirm"),
     path('api/', include('groups.urls')),
     path('api/', include('invitations.urls')),
+    path('api/', include('transactions.urls')),
     # Spectacular Endpoints
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path(

@@ -6,7 +6,7 @@ from .models import CustomUserModel
 class UserAdminCustom(UserAdmin):
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        (("Personal info"), {"fields": ("first_name", "last_name")}),
+        (("Personal info"), {"fields": ("first_name", "last_name","family")}),
         (
             ("Permissions"),
             {

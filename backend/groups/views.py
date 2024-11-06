@@ -1,9 +1,14 @@
+from requests import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from .serializers import GroupsSerializers, CategorySerializer
 from .models import Groups, Category
 from invitations.models import Family
+from rest_framework.views import APIView
+from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404
+
+from groups import models
 
 # Create your views here.
 class GroupsCreateView(generics.ListCreateAPIView):
@@ -40,3 +45,12 @@ class AddCategoryToGroupView(generics.ListCreateAPIView):
         group.categories.add(category)  # Add the new category to the group
 
         return category
+
+class FinancialSummaryView(APIView):
+    def get(self, request):
+        total_expenses = Groups.get_total_expenses()
+        total_income = Groups.get_total_income()
+        return Response({
+            'total_expenses': total_expenses,
+            'total_income': total_income
+        })
