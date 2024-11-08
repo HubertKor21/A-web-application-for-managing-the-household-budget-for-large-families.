@@ -6,7 +6,8 @@ import { useState, useEffect } from "react";
 
 
 function ProtectedRoute({ children }) {
-    const [isAuthorized, setIsAuthorized] = useState(null);
+    const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
 
     useEffect(() => {
         auth().catch(() => setIsAuthorized(false))

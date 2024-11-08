@@ -1,10 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
 from .models import Bank, Budget
-from .serializers import BankSerializer, BudgetSerializer
+from .serializers import BankSerializer, BudgetSerializer, BankNameSerializer
 from rest_framework.permissions import IsAuthenticated
-
+from django.utils import timezone
+from django.db.models import Sum
 class BankListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -48,3 +49,33 @@ class BudgetDetailView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class CurrentMonthBalanceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # Get the current date to determine the month and year
+        now = timezone.now()
+        current_year = now.year
+        current_month = now.month
+
+        # Calculate the total balance for the current month
+        total_balance = Budget.objects.filter(
+            created_at__year=current_year,
+            created_at__month=current_month,
+            family_id=request.user.family
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
+        return Response({
+            "year": current_year,
+            "month": current_month,
+            "total_balance": total_balance
+        })
+    
+class BankNameListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        banks = Bank.objects.filter(user=request.user)
+        serializer = BankNameSerializer(banks, many=True)
+        return Response(serializer.data)

@@ -1,10 +1,14 @@
 
-import Drawer from '../Component/Drawer';
+import OrdersTable from '../Component/OrdersTable';
+import SalesChart from '../Component/SalesChart';
+import StatCards from '../Component/StatCards';
 
 function Home() {
   return (
     <div>
-      <Drawer />
+      <StatCards/>
+      <OrdersTable/>
+      <SalesChart/>
     </div>
   );
 }

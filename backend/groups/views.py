@@ -1,5 +1,5 @@
-from requests import Response
-from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from .serializers import GroupsSerializers, CategorySerializer
 from .models import Groups, Category
@@ -7,8 +7,12 @@ from invitations.models import Family
 from rest_framework.views import APIView
 from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404
+from transactions.models import Bank
+from .models import Category
 
 from groups import models
+
+
 
 # Create your views here.
 class GroupsCreateView(generics.ListCreateAPIView):
@@ -27,30 +31,45 @@ class GroupsCreateView(generics.ListCreateAPIView):
         family = Family.objects.get(members=self.request.user)
         serializer.save(groups_author=self.request.user, family=family)
 
-class AddCategoryToGroupView(generics.ListCreateAPIView):
-    serializer_class = CategorySerializer
+
+class AddCategoryToGroupView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        group_id = self.kwargs.get('pk')
-        group = get_object_or_404(Groups, id=group_id, groups_author=self.request.user)
-        return group.categories.all()
+    def get_group(self, pk):
+        return get_object_or_404(Groups, id=pk, groups_author=self.request.user)
 
-    def perform_create(self, serializer):
-        group_id = self.kwargs.get('pk')
-        group = get_object_or_404(Groups, id=group_id, groups_author=self.request.user)
+    def post(self, request, pk):
+        # Dodawanie kategorii
+        group = self.get_group(pk)
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            bank_id = request.data.get('bank')
+            bank = Bank.objects.filter(id=bank_id).first() if bank_id else None
+            category = serializer.save(category_author=self.request.user, bank=bank)
+            group.categories.add(category)  # Add the new category to the group
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Save the category and associate it with the group
-        category = serializer.save(category_author=self.request.user)
-        group.categories.add(category)  # Add the new category to the group
+    def put(self, request, pk, id):
+        # Pełna aktualizacja kategorii
+        group = self.get_group(pk)
+        category = get_object_or_404(Category, id=id, group=group)
+        serializer = CategorySerializer(category, data=request.data)
+        if serializer.is_valid():
+            bank_id = request.data.get('bank')
+            bank = Bank.objects.filter(id=bank_id).first() if bank_id else None
+            serializer.save(category_author=self.request.user, bank=bank)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return category
-
-class FinancialSummaryView(APIView):
-    def get(self, request):
-        total_expenses = Groups.get_total_expenses()
-        total_income = Groups.get_total_income()
-        return Response({
-            'total_expenses': total_expenses,
-            'total_income': total_income
-        })
+    def patch(self, request, pk, id):
+        # Częściowa aktualizacja kategorii
+        group = self.get_group(pk)
+        category = get_object_or_404(Category, id=id, group=group)
+        serializer = CategorySerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            bank_id = request.data.get('bank')
+            bank = Bank.objects.filter(id=bank_id).first() if bank_id else None
+            serializer.save(category_author=self.request.user, bank=bank)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

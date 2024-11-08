@@ -7,6 +7,10 @@ import { BrowserRouter , Routes, Route } from 'react-router-dom';
 import ResetPasswordConfirm from './Pages/ResetPasswordConfirm';
 import EmailVerification from './Pages/EmailVerification';
 import ProtectedRoute from './Component/ProtectedRoute';
+import Layout from './layout';
+import StatCards from './Component/StatCards';
+import OrdersTable from './Component/OrdersTable';
+import SalesChart from './Component/SalesChart';
 
 
 
@@ -21,7 +25,11 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={
           <ProtectedRoute>
-            <Home/>
+            <Layout>
+              <StatCards/>
+              <OrdersTable/>
+              <SalesChart/>
+            </Layout>
           </ProtectedRoute>
         }/>
         <Route path="login" element={<Login />} />

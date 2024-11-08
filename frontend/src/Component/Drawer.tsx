@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../Component/Navbar';
 import Header from './Header';
-import IncomeSection from './Income';
 import ExpensesSection from './Expenses';
 import FinanceSummary from './Finance';
 import api from '../api'; // Make sure to import your api 
@@ -19,9 +17,7 @@ interface Group {
 }
 
 export function Drawer() {
-    const [incomeSections, setIncomeSections] = useState([{ id: 0, name: `Przychody 0` }]);
     const [expensesSections, setExpensesSections] = useState<Group[]>([]); // Change state to Group[]
-    const [accounts, setAccounts] = useState([]);
     const [newGroupTitle, setNewGroupTitle] = useState(''); // State for new group title
     const [isLoggedIn, setIsLoggedIn] = useState(false); // State for authentication
     const [allGroups, setAllGroups] = useState<Group[]>([]);
@@ -51,10 +47,7 @@ export function Drawer() {
           console.error('Error fetching groups:', error);
         }
       };
-    const addIncomeSection = () => {
-        const newId = incomeSections.length;
-        setIncomeSections([...incomeSections, { id: newId, name: `Przychody ${newId}` }]);
-    };
+
 
     const addGroup = async () => {
         if (newGroupTitle.trim() === '') {
@@ -86,21 +79,13 @@ export function Drawer() {
         addGroup(); // Call addGroup when adding an expenses section
     };
 
-    const renameIncomeSection = (id: number, newName: string) => {
-        setIncomeSections(incomeSections.map(section =>
-            section.id === id ? { ...section, name: newName } : section
-        ));
-    };
 
-    const handleAccountChange = (updatedAccounts) => {
-        setAccounts(updatedAccounts);
-    };
+
 
     return (
         <div className="drawer">
             <input id="my-drawer" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content">
-                <Navbar />
                 <div className="bg-dark min-h-screen p-8">
                     <Header />
                     <div className="flex flex-col md:flex-row justify-center mt-4 space-x-4">
@@ -122,7 +107,7 @@ export function Drawer() {
                                 </>
                             )}
                         </div>
-                        <FinanceSummary onAccountChange={handleAccountChange} />
+                        <FinanceSummary/>
                     </div>
                 </div>
             </div>
