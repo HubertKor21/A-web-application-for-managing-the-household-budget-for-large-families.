@@ -17,7 +17,7 @@ class Category(models.Model):
     category_title = models.CharField(max_length=50)
     category_note = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
-    assigned_amount = models.FloatField(max_length=200, default=0)
+    assigned_amount = models.FloatField(default=0)
     category_type = models.CharField(max_length=7, choices=CATEGORY_TYPE_CHOICES, default='expense')
     category_author = models.ForeignKey(CustomUserModel, on_delete=models.CASCADE, null=True, blank=True)
     bank = models.ForeignKey(Bank, on_delete=models.SET_NULL, null=True, blank=True)  # Zmieniono na przypisanie banku do kategorii
@@ -27,10 +27,16 @@ class Category(models.Model):
         super().save(*args, **kwargs)
 
         if self.category_author and self.category_type == "expense":
-            bank = Bank.objects.filter(user=self.category_author).first()
-            if bank:
-                bank.balance -= self.assigned_amount
-                bank.save()
+            if self.bank:  # Check if the category has a specific bank assigned
+                self.bank.balance -= self.assigned_amount
+                self.bank.save()
+
+        if self.category_type == "income":
+            if self.bank:
+                self.bank.balance += self.assigned_amount
+                self.bank.save()
+
+
 
 class Groups(models.Model):
     groups_title = models.CharField(max_length=50)
@@ -40,8 +46,8 @@ class Groups(models.Model):
     family = models.ForeignKey(Family, on_delete=models.CASCADE, null=True,blank=True)
 
     def get_total_expenses(self):
-        """Zlicza sumę wydatków (assigned_amount) w grupie"""
-        return self.categories.filter(category_type='expense').aggregate(total_expenses=Sum('assigned_amount'))['total_expenses'] or 0
+        return self.categories.aggregate(Sum('assigned_amount'))['assigned_amount__sum'] or 0
+
 
     def get_total_income(self):
         """Zlicza sumę przychodów (assigned_amount) w grupie"""
@@ -53,10 +59,12 @@ class Groups(models.Model):
         total_income = self.get_total_income()
         return total_income - total_expenses
     
+    def category_count(self):
+        return self.categories.count()
+    
 @receiver(m2m_changed, sender=Groups.categories.through)
 def update_balance_on_category_assignment(sender, instance, action, **kwargs):
     if action in ["post_add", "post_remove", "post_clear"]:
         for category in instance.categories.filter(category_type='expense'):
             if category.bank:  # Sprawdzamy, czy kategoria ma przypisany bank
-                category.bank.balance -= category.assigned_amount
                 category.bank.save()

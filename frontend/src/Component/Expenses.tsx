@@ -41,13 +41,15 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
   useEffect(() => {
     const fetchBanks = async () => {
       try {
+        console.log("Fetching banks...");
         const response = await api.get('/api/banks/name/');
         setBanks(response.data); // Ustawienie listy banków
-        console.log(response.data)
+        console.log("Banks fetched:", response.data);
       } catch (error) {
         console.error('Błąd podczas ładowania banków:', error);
-      } finally{
+      } finally {
         setIsLoadingBanks(false);
+        console.log("Finished loading banks.");
       }
     };
 
@@ -75,6 +77,7 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
       name: "Bank",
       selector: (row: any) => {
         const bank = banks.find(b => b.id === row.bank); // Znajdujemy bank na podstawie ID
+        console.log("Finding bank for row:", row, "Found bank:", bank);
         return bank ? bank.bank_name : 'Brak banku'; // Zwracamy nazwę banku lub 'Brak banku', jeśli nie znaleziono
       },
       sortable: true,
@@ -84,35 +87,44 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
   // Funkcja do dodawania kategorii
   const addCategory = async (e: React.FormEvent) => {
     e.preventDefault(); // Zapobiegamy domyślnemu wysyłaniu formularza
-    const amount = parseFloat(modalData.amount) || 0;
+
+    // Konwersja na liczbę
+    const amount = parseFloat(modalData.amount.trim()) || 0;
+    console.log("Amount before check:", amount);
+
     if (amount > 0 && modalData.bankId > 0 && modalData.category_name.trim() !== '') {
+        console.log("Valid data. Proceeding with category creation...");
         const newCategory = {
             category_author: 0, // Ustaw odpowiedni identyfikator autora
             category_title: modalData.category_name,
             category_note: modalData.note,
-            assigned_amount: amount,
+            assigned_amount: amount,  // Kwota przekonwertowana na liczbę
             created_at: new Date().toISOString(),
             bank: modalData.bankId,
         };
 
         try {
+            console.log("Sending category to API:", newCategory);
             const response = await api.post(`/api/groups/${group.id}/add-categories/`, newCategory);
-            console.log("API response:", response);
+            console.log("API response:", response.data);
 
             // Aktualizacja kategorii w stanie po dodaniu
-            setUpdatedCategories(prevCategories => [...prevCategories, newCategory]);
+            setUpdatedCategories(prevCategories => {
+                console.log("Updating categories in state...");
+                return [...prevCategories, newCategory];
+            });
 
             // Reset modal data
             setModalData({ category_name: '', amount: '', note: '', bankId: 0 });
+            console.log("Modal data reset after category creation.");
         } catch (error) {
             console.error('Error adding category:', error);
         }
     } else {
+        console.log("Invalid input. Amount or bank is missing.");
         alert("Kwota musi być większa od 0 oraz wybierz bank.");
     }
 };
-
-
 
   return (
     <div className="mb-4">
@@ -127,7 +139,10 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
 
       {/* Formularz modalny */}
       <button
-        onClick={() => document.getElementById(`expense_modal_${group.id}`).showModal()}
+        onClick={() => {
+          console.log("Opening modal...");
+          document.getElementById(`expense_modal_${group.id}`).showModal();
+        }}
         className="mt-4 text-blue-400"
       >
         Dodaj kategorię
@@ -140,7 +155,10 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
           <input
             type="text"
             value={modalData.category_name}
-            onChange={(e) => setModalData(prev => ({ ...prev, category_name: e.target.value }))}
+            onChange={(e) => {
+              console.log("Category name changed:", e.target.value);
+              setModalData(prev => ({ ...prev, category_name: e.target.value }));
+            }}
             className="w-full p-2 rounded bg-gray-700 text-white"
             placeholder="Wpisz nazwę kategorii"
           />
@@ -148,7 +166,10 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
           <input
             type="text"
             value={modalData.amount}
-            onChange={(e) => setModalData(prev => ({ ...prev, amount: e.target.value }))}
+            onChange={(e) => {
+              console.log("Amount changed:", e.target.value);
+              setModalData(prev => ({ ...prev, amount: e.target.value }));
+            }}
             className="w-full p-2 rounded bg-gray-700 text-white"
             placeholder="Wpisz kwotę"
           />
@@ -156,7 +177,10 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
           <input
             type="text"
             value={modalData.note}
-            onChange={(e) => setModalData(prev => ({ ...prev, note: e.target.value }))}
+            onChange={(e) => {
+              console.log("Note changed:", e.target.value);
+              setModalData(prev => ({ ...prev, note: e.target.value }));
+            }}
             className="w-full p-2 rounded bg-gray-700 text-white"
           />
           <label className="block text-sm">Wybierz bank:</label>
@@ -164,11 +188,12 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
             value={modalData.bankId}
             onChange={(e) => {
               const selectedBankId = parseInt(e.target.value);
+              console.log("Bank selected:", selectedBankId);
               setModalData(prev => ({ ...prev, bankId: selectedBankId }));
             }}
             className="w-full p-2 rounded bg-gray-700 text-white"
           >
-            <option value="" disabled>Wybierz bank</option>
+            <option value="" disabled selected={!modalData.bankId}>Wybierz bank</option> {/* Ustawienie 'selected' tylko, jeśli bankId jest puste */}
             {banks.map(bank => (
               <option key={bank.id} value={bank.id}>{bank.bank_name}</option>
             ))}
@@ -176,7 +201,10 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
 
           <button onClick={addCategory} className="btn btn-primary mt-4">Zapisz Kategorię</button>
           <form method="dialog" className="modal-backdrop">
-            <button type="button" onClick={() => document.getElementById(`expense_modal_${group.id}`).close()} className="mt-2 text-white">Zamknij</button>
+            <button type="button" onClick={() => {
+              console.log("Closing modal...");
+              document.getElementById(`expense_modal_${group.id}`).close();
+            }} className="mt-2 text-white">Zamknij</button>
           </form>
         </div>
       </dialog>

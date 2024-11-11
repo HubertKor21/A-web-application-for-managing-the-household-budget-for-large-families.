@@ -14,10 +14,11 @@ class CategorySerializer(serializers.ModelSerializer):
 class GroupsSerializers(serializers.ModelSerializer):
     categories = CategorySerializer(many=True)
     family = FamilySerializer()
+    category_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Groups
-        fields = ['id','groups_title', 'groups_author', 'created_at', 'categories', 'family']
+        fields = ['id','groups_title', 'groups_author', 'created_at', 'categories', 'family', 'category_count']
         extra_kwargs = {'groups_author': {'read_only': True}}
 
     def create(self, validated_data):
@@ -40,3 +41,16 @@ class GroupsSerializers(serializers.ModelSerializer):
             group.categories.add(category)
 
         return group
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['category_count'] = instance.category_count()  # Dodanie licznika kategorii
+        return representation
+
+class GroupBalanceSerializer(serializers.ModelSerializer):
+    total_expenses = serializers.FloatField(source='get_total_expenses', read_only=True)
+    total_income = serializers.FloatField(source='get_total_income', read_only=True)
+
+    class Meta:
+        model = Groups
+        fields = ['id', 'groups_title', 'total_expenses', 'total_income']

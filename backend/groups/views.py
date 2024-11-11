@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
-from .serializers import GroupsSerializers, CategorySerializer
+from .serializers import GroupsSerializers, CategorySerializer, GroupBalanceSerializer
 from .models import Groups, Category
 from invitations.models import Family
 from rest_framework.views import APIView
@@ -73,3 +73,22 @@ class AddCategoryToGroupView(APIView):
             serializer.save(category_author=self.request.user, bank=bank)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GroupBalanceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        # Możemy dodać filtry, np. tylko dla grup należących do zalogowanego użytkownika
+        if pk:
+
+            try:
+                group = Groups.objects.get(id=pk, groups_author=request.user)
+                serializer = GroupBalanceSerializer(group)
+                return Response(serializer.data)
+            except Groups.DoesNotExist:
+                return Response({'detail': 'Group not found'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # Jeśli nie podano `pk`, możemy zwrócić bilans dla wszystkich grup
+            groups = Groups.objects.all()
+            serializer = GroupBalanceSerializer(groups, many=True)
+            return Response(serializer.data)

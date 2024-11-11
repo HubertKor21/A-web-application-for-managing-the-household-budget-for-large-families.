@@ -1,5 +1,6 @@
 from django.apps import apps
 from django.db import models
+from django.db.models import Sum
 import uuid
 
 class Family(models.Model):
@@ -18,7 +19,6 @@ class Family(models.Model):
         CustomUserModel = self.get_user_model()
         self.members.add(user)
 
-    # Define the members and created_by fields dynamically in methods to avoid circular imports
     @property
     def members(self):
         CustomUserModel = self.get_user_model()

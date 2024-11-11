@@ -14,9 +14,11 @@ interface Account {
 
 const StatCards = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [totalIncome, setTotalIncome] = useState<number>(0);
+  const [, setTotalIncome] = useState<number>(0);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
   const [users, setUsers] = useState<number>(0);
+  const [categoryCount, setCategoryCount] = useState<number>(0);  // Nowy stan na licznik kategorii
+
 
   // Fetch financial summary and bank accounts from backend
   useEffect(() => {
@@ -27,7 +29,6 @@ const StatCards = () => {
           api.get("/api/banks/"),
         ]);
         setTotalIncome(budgetResponse.data.total_income);
-        setTotalExpenses(budgetResponse.data.total_expenses);
         setAccounts(bankResponse.data);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -49,6 +50,31 @@ const StatCards = () => {
     fetchMemberCount();
   }, []);
 
+  // Fetch total expenses from group balance API
+  useEffect(() => {
+    const fetchTotalExpenses = async () => {
+      try {
+        const response = await api.get("/api/group-balance/");
+        setTotalExpenses(response.data[0].total_expenses);
+      } catch (error) {
+        console.error("Error fetching total expenses:", error);
+      }
+    };
+    fetchTotalExpenses();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategoryCount = async () => {
+      try {
+        const response = await api.get("/api/groups/"); 
+        setCategoryCount(response.data[0].category_count);
+      } catch (error) {
+        console.log("Error fetching category count:", error);
+      }
+    };
+    fetchCategoryCount();
+  },[]);
+
   const cards = [
     {
       title: "Users in family",
@@ -59,7 +85,7 @@ const StatCards = () => {
     },
     {
       title: "Number of expenses",
-      value: `${totalExpenses}`,
+      value: `${categoryCount}`,
       icon: ordersIcon,
       profit: false,
       percentage: "1.3%",
