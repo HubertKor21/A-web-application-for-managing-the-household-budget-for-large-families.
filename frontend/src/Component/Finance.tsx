@@ -15,8 +15,8 @@ interface FinanceSummaryProps {
 const FinanceSummary: React.FC<FinanceSummaryProps> = ({ showForm, setShowForm }) => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [newAccount, setNewAccount] = useState<Account>({ id: 0, bank_name: '', balance: 0 });
-  const [totalIncome, setTotalIncome] = useState<number>(0);
-  const [totalExpenses, setTotalExpenses] = useState<number>(0);
+  const [, setTotalIncome] = useState<number>(0);
+  const [, setTotalExpenses] = useState<number>(0);
 
   useEffect(() => {
     const fetchSummary = async () => {

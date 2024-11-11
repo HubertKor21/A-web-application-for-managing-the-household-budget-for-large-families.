@@ -28,6 +28,10 @@ class Family(models.Model):
     def created_by(self):
         CustomUserModel = self.get_user_model()
         return models.ForeignKey(CustomUserModel, on_delete=models.CASCADE, related_name='created_families')
+    
+    @property
+    def member_count(self):
+        return self.members.count()
 
 class Invite(models.Model):
     email = models.EmailField()

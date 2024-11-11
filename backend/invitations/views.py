@@ -70,12 +70,20 @@ class FamilyMembersView(views.APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CustomUserSerializer
     
-    def get(self , request, family_id):
+    def get(self , request):
         try:
-            family = Family.objects.get(id=family_id)
-            members = family.members.all()
+            family = request.user.family
 
+            if not family:
+                return Response({'detail': 'No famnily associated with this user'}, status=status.HTTP_404_NOT_FOUND)
+            
+            members = family.members.all()
             serializer = CustomUserSerializer(members, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            return Response({
+                'member_count': family.member_count,
+                'members': serializer.data 
+            }, status=status.HTTP_200_OK)
         except  Family.DoesNotExist:
             return Response({'detail': 'Family not found'}, status=status.HTTP_404_NOT_FOUND)
+        

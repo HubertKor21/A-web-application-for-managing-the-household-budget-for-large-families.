@@ -31,6 +31,7 @@ interface Bank {
 const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
   const [banks, setBanks] = useState<Bank[]>([]); // Przechowywanie dostępnych banków
   const [selectedBank, setSelectedBank] = useState<Bank | null>(null); // Przechowywanie wybranego banku
+  const [isLoadingBanks, setIsLoadingBanks] = useState(true);
   const [modalData, setModalData] = useState<{ category_name: string; amount: string; note: string; bankId: number }>({
     category_name: '', amount: '', note: '', bankId: 0
   });
@@ -42,8 +43,11 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
       try {
         const response = await api.get('/api/banks/name/');
         setBanks(response.data); // Ustawienie listy banków
+        console.log(response.data)
       } catch (error) {
         console.error('Błąd podczas ładowania banków:', error);
+      } finally{
+        setIsLoadingBanks(false);
       }
     };
 
@@ -70,42 +74,45 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
     {
       name: "Bank",
       selector: (row: any) => {
-        const bank = banks.find(b => b.id === row.bank);
-        return bank ? bank.bank_name : 'N/A';
+        const bank = banks.find(b => b.id === row.bank); // Znajdujemy bank na podstawie ID
+        return bank ? bank.bank_name : 'Brak banku'; // Zwracamy nazwę banku lub 'Brak banku', jeśli nie znaleziono
       },
       sortable: true,
-    },
+  },
   ];
 
   // Funkcja do dodawania kategorii
-  const addCategory = async () => {
+  const addCategory = async (e: React.FormEvent) => {
+    e.preventDefault(); // Zapobiegamy domyślnemu wysyłaniu formularza
     const amount = parseFloat(modalData.amount) || 0;
     if (amount > 0 && modalData.bankId > 0 && modalData.category_name.trim() !== '') {
-      const newCategory = {
-        category_author: 0, // Ustaw odpowiedni identyfikator autora
-        category_title: modalData.category_name,
-        category_note: modalData.note,
-        assigned_amount: amount,
-        created_at: new Date().toISOString(),
-        bank: modalData.bankId,
-      };
+        const newCategory = {
+            category_author: 0, // Ustaw odpowiedni identyfikator autora
+            category_title: modalData.category_name,
+            category_note: modalData.note,
+            assigned_amount: amount,
+            created_at: new Date().toISOString(),
+            bank: modalData.bankId,
+        };
 
-      try {
-        const response = await api.post(`/api/groups/${group.id}/add-categories/`, newCategory);
-        console.log("API response:", response);
+        try {
+            const response = await api.post(`/api/groups/${group.id}/add-categories/`, newCategory);
+            console.log("API response:", response);
 
-        // Aktualizacja kategorii w stanie po dodaniu
-        setUpdatedCategories(prevCategories => [...prevCategories, newCategory]);
+            // Aktualizacja kategorii w stanie po dodaniu
+            setUpdatedCategories(prevCategories => [...prevCategories, newCategory]);
 
-        // Reset modal data
-        setModalData({ category_name: '', amount: '', note: '', bankId: 0 });
-      } catch (error) {
-        console.error('Error adding category:', error);
-      }
+            // Reset modal data
+            setModalData({ category_name: '', amount: '', note: '', bankId: 0 });
+        } catch (error) {
+            console.error('Error adding category:', error);
+        }
     } else {
-      alert("Kwota musi być większa od 0 oraz wybierz bank.");
+        alert("Kwota musi być większa od 0 oraz wybierz bank.");
     }
-  };
+};
+
+
 
   return (
     <div className="mb-4">
@@ -155,7 +162,10 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
           <label className="block text-sm">Wybierz bank:</label>
           <select
             value={modalData.bankId}
-            onChange={(e) => setModalData(prev => ({ ...prev, bankId: parseInt(e.target.value) }))}
+            onChange={(e) => {
+              const selectedBankId = parseInt(e.target.value);
+              setModalData(prev => ({ ...prev, bankId: selectedBankId }));
+            }}
             className="w-full p-2 rounded bg-gray-700 text-white"
           >
             <option value="" disabled>Wybierz bank</option>

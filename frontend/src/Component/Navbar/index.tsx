@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { ChatboxEllipses, Notifications, SearchOutline } from "react-ionicons";
 export function Navbar() {
   const navigate = useNavigate(); // Initialize the useNavigate hook
 
@@ -10,23 +9,11 @@ export function Navbar() {
 
   return (
 		<div className="fixed left-0 top-0 w-full h-[70px] bg-white py-5 pl-20 pr-5 flex items-center justify-between z-[100]">
-			<span className="text-[28px] font-black absolute left-[26px] text-[#4379EE]">D.</span>
+			<span className="text-[28px] font-black absolute left-[26px] text-[#4379EE]">H.</span>
 			<div className="w-[450px] flex items-center px-4">
-				<SearchOutline color={"#454545"} />
-				<input
-					type="text"
-					placeholder="Search"
-					className="w-[450px] outline-none px-4 py-2 placeholder:text-[#454545] border-b border-transparent focus:border-[#4379EE] bg-white"
-				/>
 			</div>
 			<div className="flex items-center gap-5">
-				<Notifications
-					color={`#bfbfbf`}
-					width="23px"
-					height="23px"
-					cssClasses={"cursor-pointer"}
-				/>
-            <div className="flex-none">
+                    <div className="flex-none">
             <div className="dropdown dropdown-end">
               <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
                 <div className="w-10 rounded-full">
@@ -51,12 +38,6 @@ export function Navbar() {
               </ul>
             </div>
             </div>
-				<ChatboxEllipses
-					color={`#bfbfbf`}
-					width="23px"
-					height="23px"
-					cssClasses={"cursor-pointer"}
-				/>
 			</div>
 		</div>
 	);
