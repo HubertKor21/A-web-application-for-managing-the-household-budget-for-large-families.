@@ -25,4 +25,3 @@ class FamilySerializer(serializers.ModelSerializer):
     class Meta:
         model = Family
         fields = ['name', 'members']
-

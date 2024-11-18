@@ -13,7 +13,7 @@ class CustomUserModel(AbstractBaseUser,PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateField(auto_now=True)
-    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name="members", null=True, blank=True)
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name="members_of_family", null=True, blank=True)
     budget = models.FloatField(default=0)  # Miesięczny budżet użytkownika
 
     USERNAME_FIELD = 'email'

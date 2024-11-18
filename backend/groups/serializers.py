@@ -11,28 +11,27 @@ class CategorySerializer(serializers.ModelSerializer):
         extra_kwargs = {'category_author': {'read_only': True}}
 
 
+# your existing GroupsSerializers
 class GroupsSerializers(serializers.ModelSerializer):
     categories = CategorySerializer(many=True)
-    family = FamilySerializer()
+    family = FamilySerializer()  # Ensure that family is serialized using FamilySerializer
     category_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Groups
-        fields = ['id','groups_title', 'groups_author', 'created_at', 'categories', 'family', 'category_count']
+        fields = ['id', 'groups_title', 'groups_author', 'created_at', 'categories', 'family', 'category_count']
         extra_kwargs = {'groups_author': {'read_only': True}}
 
     def create(self, validated_data):
-        # Pobieranie danych z nested serializerów
         categories_data = validated_data.pop('categories')
         family_data = validated_data.pop('family')
 
         if isinstance(family_data, dict):
-            family_name = family_data.get('name')  # Pobieranie pola 'name'
+            family_name = family_data.get('name')
             family, created = Family.objects.get_or_create(name=family_name)
         else:
-            family = family_data  # Jeśli to obiekt Family, przypisz bezpośrednio
+            family = family_data
 
-        # Tworzenie grupy
         group = Groups.objects.create(family=family, **validated_data)
 
         for category_data in categories_data:
@@ -41,11 +40,12 @@ class GroupsSerializers(serializers.ModelSerializer):
             group.categories.add(category)
 
         return group
-    
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['category_count'] = instance.category_count()  # Dodanie licznika kategorii
+        representation['category_count'] = instance.category_count()  # Add category count
         return representation
+
 
 class GroupBalanceSerializer(serializers.ModelSerializer):
     total_expenses = serializers.FloatField(source='get_total_expenses', read_only=True)
@@ -54,3 +54,8 @@ class GroupBalanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Groups
         fields = ['id', 'groups_title', 'total_expenses', 'total_income']
+
+
+class GroupBalanceChartSerializer(serializers.Serializer):
+    dates = serializers.ListField(child=serializers.CharField())
+    expenses = serializers.ListField(child=serializers.FloatField())

@@ -5,33 +5,18 @@ import uuid
 
 class Family(models.Model):
     name = models.CharField(max_length=150)
+    created_by = models.ForeignKey('accounts.CustomUserModel', null=True, on_delete=models.CASCADE,related_name='fam')
 
-    # We define the ForeignKey field without assigning the model at the class level
-    def get_user_model(self):
-        CustomUserModel = apps.get_model('accounts', 'CustomUserModel')
-        return CustomUserModel
+    # We define the ForeignKey field directly here, not as a @property
+    members = models.ManyToManyField('accounts.CustomUserModel', related_name='families' , blank=True)
 
     def __str__(self):
         return self.name
 
-    # Use `get_user_model` within methods, where models are already loaded
-    def add_member(self, user):
-        CustomUserModel = self.get_user_model()
-        self.members.add(user)
-
-    @property
-    def members(self):
-        CustomUserModel = self.get_user_model()
-        return models.ManyToManyField(CustomUserModel, related_name='families')
-
-    @property
-    def created_by(self):
-        CustomUserModel = self.get_user_model()
-        return models.ForeignKey(CustomUserModel, on_delete=models.CASCADE, related_name='created_families')
-    
     @property
     def member_count(self):
         return self.members.count()
+    
 
 class Invite(models.Model):
     email = models.EmailField()

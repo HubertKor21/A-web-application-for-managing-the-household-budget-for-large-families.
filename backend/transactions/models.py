@@ -6,6 +6,7 @@ class Bank(models.Model):
     user = models.ForeignKey(CustomUserModel, on_delete=models.CASCADE, related_name='banks')
     bank_name = models.CharField(max_length=50,blank=True,null=True)
     balance = models.FloatField(default=0)
+    family = models.ForeignKey(Family, on_delete=models.CASCADE,related_name='banks_family',null=True,blank=True)
 
     def __str__(self):
         return f'{self.user.email} Bank Account - Balance: {self.balance}'

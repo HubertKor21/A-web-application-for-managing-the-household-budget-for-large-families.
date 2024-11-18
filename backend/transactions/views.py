@@ -10,20 +10,23 @@ class BankListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Get all bank accounts of the logged-in user"""
-        banks = Bank.objects.filter(user=request.user)
+        # Pobieramy rodzinę zalogowanego użytkownika
+        family = request.user.family
+        
+        # Pobieramy wszystkie banki przypisane do tej rodziny
+        banks = Bank.objects.filter(family=family)  # Filtrowanie po rodzinie
         serializer = BankSerializer(banks, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        """Create a new bank account"""
+        """Tworzenie nowego konta bankowego dla rodziny"""
         serializer = BankSerializer(data=request.data)
         if serializer.is_valid():
-            # Set the user to the logged-in user before saving
-            serializer.save(user=request.user)
+            # Przypisujemy użytkownika i rodzinę do banku
+            family = request.user.family
+            serializer.save(user=request.user, family=family)  # Ustawiamy użytkownika i rodzinę
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class BudgetDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -76,6 +79,7 @@ class BankNameListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        banks = Bank.objects.filter(user=request.user)
+        family = request.user.family 
+        banks = Bank.objects.filter(family = family)
         serializer = BankNameSerializer(banks, many=True)
         return Response(serializer.data)

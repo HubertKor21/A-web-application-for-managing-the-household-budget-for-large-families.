@@ -1,3 +1,4 @@
+from datetime import timezone
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
@@ -7,8 +8,9 @@ from invitations.models import Family
 from rest_framework.views import APIView
 from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404
-from transactions.models import Bank
+from transactions.models import Bank, Budget
 from .models import Category
+
 
 from groups import models
 
@@ -36,7 +38,24 @@ class AddCategoryToGroupView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_group(self, pk):
-        return get_object_or_404(Groups, id=pk, groups_author=self.request.user)
+        group = get_object_or_404(Groups, id=pk)
+        if group.groups_author != self.request.user and group.family != self.request.user.family:
+            raise PermissionError("You do not have permission to acces this groups")
+        return group
+    
+    def get_group_queryset(self):
+        return Groups.objects.filter(groups_author=self.request.user)
+    
+    def get(self, request, pk=None):
+        if pk:
+            group = self.get_group(pk)
+            categories = group.categories.all()
+        else:
+            groups = self.get_group_queryset()
+            categories = Category.objects.filter(groups__in=groups).distinct()
+        
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
         # Dodawanie kategorii
@@ -78,17 +97,104 @@ class GroupBalanceView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
+
+        family = request.user.family
         # Możemy dodać filtry, np. tylko dla grup należących do zalogowanego użytkownika
         if pk:
 
             try:
-                group = Groups.objects.get(id=pk, groups_author=request.user)
+                group = Groups.objects.get(id=pk, family=family)
+                if group.groups_author != request.user and group.family != request.user.family:
+                    return Response({"detail": "You do not have permission to view this group."}, status=status.HTTP_403_FORBIDDEN)
                 serializer = GroupBalanceSerializer(group)
                 return Response(serializer.data)
             except Groups.DoesNotExist:
                 return Response({'detail': 'Group not found'}, status=status.HTTP_404_NOT_FOUND)
         else:
             # Jeśli nie podano `pk`, możemy zwrócić bilans dla wszystkich grup
-            groups = Groups.objects.all()
+            groups = Groups.objects.filter(family=family)
             serializer = GroupBalanceSerializer(groups, many=True)
             return Response(serializer.data)
+        
+from django.db.models import Sum
+from collections import defaultdict
+
+class GroupBalanceForChartView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Pobieramy wszystkie grupy, do których użytkownik ma dostęp
+        groups = Groups.objects.filter(groups_author=request.user) | Groups.objects.filter(family=request.user.family)
+
+        # Jeśli użytkownik nie ma żadnych grup, zwrócimy odpowiedź z pustymi danymi
+        if not groups.exists():
+            return Response({"detail": "You do not belong to any group."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Zmienna do przechowywania danych dla wszystkich grup
+        all_dates = []
+        all_expenses = []
+
+        # Iterujemy po grupach
+        for group in groups:
+            # Sprawdzamy, czy użytkownik jest autorem grupy lub należy do tej samej rodziny
+            if group.groups_author != request.user and group.family != request.user.family:
+                continue  # Jeśli użytkownik nie ma dostępu do grupy, pomijamy ją
+
+            categories = group.categories.filter(category_type='expense')
+            expenses_by_date = defaultdict(float)
+
+            # Zbieramy wydatki z kategorii
+            for category in categories:
+                category_date = category.created_at.strftime("%Y-%m-%d")
+                expenses_by_date[category_date] += category.assigned_amount
+
+            # Dodajemy daty i wydatki z bieżącej grupy do list
+            dates = list(expenses_by_date.keys())
+            expenses = list(expenses_by_date.values())
+
+            all_dates.extend(dates)
+            all_expenses.extend(expenses)
+
+        # Opcjonalnie: Sortowanie dat i wydatków
+        sorted_data = sorted(zip(all_dates, all_expenses), key=lambda x: x[0])
+        sorted_dates, sorted_expenses = zip(*sorted_data)
+
+        # Zwracamy dane
+        data = {
+            "dates": sorted_dates,
+            "expenses": sorted_expenses,
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
+
+
+class PreviousMonthBalanceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        now = timezone.now()
+        current_year = now.year
+        current_month = now.month
+
+        # Ustalamy poprzedni miesiąc
+        if current_month == 1:
+            previous_month = 12
+            year = current_year - 1
+        else:
+            previous_month = current_month - 1
+            year = current_year
+
+        # Pobieramy dane z poprzedniego miesiąca
+        total_balance = Budget.objects.filter(
+            created_at__year=year,
+            created_at__month=previous_month,
+            family_id=request.user.family
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
+        return Response({
+            "year": year,
+            "month": previous_month,
+            "total_balance": total_balance
+        })

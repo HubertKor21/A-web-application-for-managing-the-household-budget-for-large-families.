@@ -1,5 +1,14 @@
 from django.contrib import admin
 from .models import Family, Invite
 
-# Register your models here.
-admin.site.register(Family)
+class FamilyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'created_by','member_count')  # Display fields
+    search_fields = ('name',)
+class InviteAdmin(admin.ModelAdmin):
+    list_display = ('email', 'family', 'is_accepted', 'created_at')  # Display fields
+    search_fields = ('email', 'family__name')  # Searching by email and family name
+    list_filter = ('is_accepted', 'created_at')  # Filtering by acceptance status and created_at
+
+# Register models with admin
+admin.site.register(Family, FamilyAdmin)
+admin.site.register(Invite, InviteAdmin)

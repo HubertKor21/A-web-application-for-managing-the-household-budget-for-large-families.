@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/', include('groups.urls')),
     path('api/', include('invitations.urls')),
     path('api/', include('transactions.urls')),
+    path('api/', include('loan.urls')),
     # Spectacular Endpoints
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path(
