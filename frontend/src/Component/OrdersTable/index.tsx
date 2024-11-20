@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Drawer from "../Drawer";
 import api from "../../api";
 import { Modal } from "../Modal/Modal";
-import { addGroup as addGroupService } from "../../Script/groupService";
 
 interface Group {
     id: number;

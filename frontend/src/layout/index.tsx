@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Sidebar from "../Component/Siebar";
 import Navbar from "../Component/Navbar";
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import FinanceSummary from "../Component/Finance";
+import api from "../api";
+import FamilyModal from "../Component/FamilyModal/FamilyModal";
 
 interface Props {
   children: any;
@@ -10,6 +12,37 @@ interface Props {
 
 const Layout = ({ children }: Props) => {
   const [showForm, setShowForm] = useState(false);
+  const [showFamilyModal, setShowFamilyModal] = useState(false);
+  const [userHasFamily, setUserHasFamily] = useState<boolean | null>(null); // To track if the user has a family
+
+  useEffect(() =>{
+    const fetchMembers = async () =>{
+      try{
+        const response = await api.get('api/families/members/')
+        if (response && response.data){
+          setUserHasFamily(true)
+        } 
+      }catch(error){
+        setUserHasFamily(false);
+        setShowFamilyModal(true);
+      }
+    }
+    fetchMembers();
+  },[]);
+
+  const handleCreateFamily = async (familyName: string) => {
+    try {
+      const respone = await api.post('api/create-family/', {name: familyName});
+      console.log('Family created succesfulyy:', respone);
+      setShowFamilyModal(false);
+    }catch(error){
+      console.error('Error',error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowFamilyModal(false);
+  };
 
   return (
     <div className="w-screen bg-slate-100 relative">
@@ -28,6 +61,11 @@ const Layout = ({ children }: Props) => {
         {showForm && (
           <FinanceSummary showForm={showForm} setShowForm={setShowForm} />
         )}
+        <FamilyModal
+        isVisible={showFamilyModal}
+        onClose={handleCloseModal}
+        onCreateFamily={handleCreateFamily}
+        />
         {children}
       </div>
     </div>

@@ -1,33 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// Sidebar.tsx
 import React, { useRef, useState } from "react";
-import {
-	Calendar,
-	ChatbubbleEllipses,
-	Cog,
-	Cube,
-	DocumentText,
-	FileTrayFull,
-	Grid,
-	Heart,
-	Layers,
-} from "react-ionicons";
+import { useNavigate } from "react-router-dom";
+import { Cog, SettingsOutline, Grid , CardOutline} from "react-ionicons";
+
 const Sidebar = () => {
 	const [activePage, setActivePage] = useState("home");
 	const indicatorDiv = useRef<HTMLDivElement>(null);
+	const navigate = useNavigate();
 
 	const sidebarItems = [
-		{ title: "home", icon: Grid },
-		{ title: "products", icon: Cube },
-		{ title: "favourites", icon: Heart },
-		{ title: "messages", icon: ChatbubbleEllipses },
-		{ title: "applications", icon: Layers },
-		{ title: "archive", icon: FileTrayFull },
-		{ title: "documents", icon: DocumentText },
-		{ title: "calendar", icon: Calendar },
+		{ title: "home", icon: Grid, path: "/" },
+		{ title: "loan", icon: CardOutline, path: "/loan"},
+		{ title: "settings", icon: SettingsOutline, path: "/settings" },
 	];
 
 	const handleItemClick = (item: any, e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
 		setActivePage(item.title);
+		navigate(item.path);
 
 		const offsetTop = e.currentTarget.offsetTop;
 		const scrollTop = document.documentElement.scrollTop;
@@ -37,6 +26,7 @@ const Sidebar = () => {
 			indicatorDiv.current.style.top = topPosition;
 		}
 	};
+
 	return (
 		<div className="fixed left-0 top-[70px] w-[76px] h-[calc(100vh-70px)] shadow-sm bg-white border-r border-gray-200 flex items-center flex-col gap-5">
 			<div
@@ -58,11 +48,7 @@ const Sidebar = () => {
 				</div>
 			))}
 			<div className="cursor-pointer absolute bottom-2 w-full border-r-[3px] py-2 border-transparent flex items-center justify-center">
-				<Cog
-					color={"#bfbfbf"}
-					width="25px"
-					height="25px"
-				/>
+				<Cog color={"#bfbfbf"} width="25px" height="25px" />
 			</div>
 		</div>
 	);

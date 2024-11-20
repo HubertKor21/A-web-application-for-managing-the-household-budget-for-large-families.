@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
+import background from "../assets/images/blue-blank.jpg";
 
 function Form({ route, method }) {
     const [email, setEmail] = useState("");
@@ -40,17 +41,16 @@ function Form({ route, method }) {
     };
 
     return (
-        <div className="hero bg-base-200 min-h-screen">
-            <div className="hero-content flex-col lg:flex-row-reverse">
-                <div className="text-center lg:text-left">
-                    <h1 className="text-5xl font-bold">{title}</h1>
-                    <p className="py-6">
+        <div className="min-h-screen flex">
+            {/* Left side - Login form */}
+            <div className="flex-1 flex items-center justify-center bg-white">
+                <div className="w-full max-w-sm p-6">
+                    <h1 className="text-5xl font-bold text-center mb-6">{title}</h1>
+                    <p className="text-center mb-6">
                         Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
                         quasi. In deleniti eaque aut repudiandae et a id nisi.
                     </p>
-                </div>
-                <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-                    <form onSubmit={handleSubmit} className="card-body">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Email</span>
@@ -58,14 +58,14 @@ function Form({ route, method }) {
                             <input
                                 type="email"
                                 placeholder="email"
-                                className="input input-bordered"
+                                className="input input-bordered bg-white"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
-
-                        {method === "register" && ( // Registration specific fields
+    
+                        {method === "register" && (
                             <>
                                 <div className="form-control">
                                     <label className="label">
@@ -74,13 +74,13 @@ function Form({ route, method }) {
                                     <input
                                         type="password"
                                         placeholder="password"
-                                        className="input input-bordered"
+                                        className="input input-bordered bg-white"
                                         value={password1}
                                         onChange={(e) => setPassword1(e.target.value)}
                                         required
                                     />
                                 </div>
-
+    
                                 <div className="form-control">
                                     <label className="label">
                                         <span className="label-text">Confirm Password (optional)</span>
@@ -88,15 +88,15 @@ function Form({ route, method }) {
                                     <input
                                         type="password"
                                         placeholder="confirm password"
-                                        className="input input-bordered"
+                                        className="input input-bordered bg-white"
                                         value={password2}
                                         onChange={(e) => setPassword2(e.target.value)}
                                     />
                                 </div>
                             </>
                         )}
-
-                        {method === "login" && ( // Login specific field
+    
+                        {method === "login" && (
                             <div className="form-control">
                                 <label className="label">
                                     <span className="label-text">Password</span>
@@ -104,7 +104,7 @@ function Form({ route, method }) {
                                 <input
                                     type="password"
                                     placeholder="password"
-                                    className="input input-bordered"
+                                    className="input input-bordered bg-white"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -114,14 +114,22 @@ function Form({ route, method }) {
                                 </label>
                             </div>
                         )}
-
+    
                         <div className="form-control mt-6">
-                            <button className="btn btn-primary" type="submit" disabled={loading}>
+                            <button className="btn btn-primary w-full" type="submit" disabled={loading}>
                                 {loading ? "Loading..." : buttonText}
                             </button>
                         </div>
                     </form>
                 </div>
+            </div>
+    
+            {/* Right side - Background image */}
+            <div
+                className="flex-1 hidden lg:flex items-center justify-center"
+                style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            >
+                {/* Optional content for the background side */}
             </div>
         </div>
     );

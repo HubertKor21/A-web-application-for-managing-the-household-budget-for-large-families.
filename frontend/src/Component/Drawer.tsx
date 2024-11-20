@@ -48,11 +48,15 @@ export function Drawer() {
         <div className="drawer">
             <input id="my-drawer" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content">
-                <div className="bg-dark min-h-screen p-8">
+                <div className="bg-dark min-h p-8">
                     <div className="flex flex-col md:flex-row justify-center mt-4 space-x-4">
                         <div className="flex flex-col space-y-4 w-[90%] ">
-                            {isLoggedIn && expensesSections.map((section) => (
-                                <ExpensesSection key={section.id} group={section} allGroups={allGroups} />
+                        {isLoggedIn && expensesSections.map((section, index) => (
+                                <ExpensesSection
+                                key={section.id}
+                                group={section}
+                                isFixed={index === 0}  // Pierwsza sekcja to "wydatki stałe"
+                                />
                             ))}
                         </div>
                     </div>

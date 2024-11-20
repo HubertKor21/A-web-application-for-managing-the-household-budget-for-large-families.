@@ -134,7 +134,6 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
       <DataTable
         columns={columns}
         data={updatedCategories} // Używamy zaktualizowanego stanu kategorii
-        pagination
       />
 
       {/* Formularz modalny */}

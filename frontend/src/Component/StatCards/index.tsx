@@ -5,6 +5,8 @@ import userIcon from "../../assets/images/userIcon.png";
 import salesIcon from "../../assets/images/salesIcon.png";
 import ordersIcon from "../../assets/images/ordersIcon.png";
 import revenueIcon from "../../assets/images/revenueIcon.png";
+import { toast, ToastContainer } from "react-toastify";  // Import toastify
+import "react-toastify/dist/ReactToastify.css";  // Import stylów
 
 interface Account {
   id: number;
@@ -14,11 +16,10 @@ interface Account {
 
 const StatCards = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [, setTotalIncome] = useState<number>(0);
+  const [totalIncome, setTotalIncome] = useState<number>(0);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
   const [users, setUsers] = useState<number>(0);
   const [categoryCount, setCategoryCount] = useState<number>(0);  // Nowy stan na licznik kategorii
-
 
   // Fetch financial summary and bank accounts from backend
   useEffect(() => {
@@ -28,10 +29,12 @@ const StatCards = () => {
           api.get("/api/budget/"),
           api.get("/api/banks/"),
         ]);
+
         setTotalIncome(budgetResponse.data.total_income);
         setAccounts(bankResponse.data);
       } catch (error) {
         console.error("Error fetching data:", error);
+
       }
     };
     fetchSummary();
@@ -55,7 +58,11 @@ const StatCards = () => {
     const fetchTotalExpenses = async () => {
       try {
         const response = await api.get("/api/group-balance/");
-        setTotalExpenses(response.data[0].total_expenses);
+        // setTotalExpenses(response.data[0].total_expenses);
+        const totalCategoryExpenses = response.data.reduce(
+          (sum, group) => sum + (group.total_expenses || 0),0
+        );
+        setTotalExpenses(totalCategoryExpenses);
       } catch (error) {
         console.error("Error fetching total expenses:", error);
       }
@@ -66,14 +73,20 @@ const StatCards = () => {
   useEffect(() => {
     const fetchCategoryCount = async () => {
       try {
-        const response = await api.get("/api/groups/"); 
-        setCategoryCount(response.data[0].category_count);
+        const response = await api.get("/api/groups/");
+        // Sumujemy liczby kategorii ze wszystkich grup
+        const totalCategoryCount = response.data.reduce(
+          (sum, group) => sum + (group.category_count || 0),
+          0
+        );
+        setCategoryCount(totalCategoryCount);
       } catch (error) {
         console.log("Error fetching category count:", error);
       }
     };
+  
     fetchCategoryCount();
-  },[]);
+  }, []);
 
   const cards = [
     {
@@ -137,6 +150,7 @@ const StatCards = () => {
           />
         </div>
       ))}
+      <ToastContainer /> {/* Toastify container for notifications */}
     </div>
   );
 };
