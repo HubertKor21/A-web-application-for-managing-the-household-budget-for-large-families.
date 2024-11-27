@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, generics
-from .models import Bank, Budget
+from rest_framework import status
+from .models import Bank, Budget, Transaction
 from .serializers import BankSerializer, BudgetSerializer, BankNameSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
@@ -26,6 +26,21 @@ class BankListCreateView(APIView):
             family = request.user.family
             serializer.save(user=request.user, family=family)  # Ustawiamy użytkownika i rodzinę
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, pk):
+        """Aktualizacja istniejącego konta bankowego"""
+        try:
+            # Pobieramy bank na podstawie ID (pk)
+            bank = Bank.objects.get(pk=pk, family=request.user.family)  # Filtrowanie po rodzinie
+        except Bank.DoesNotExist:
+            return Response({"detail": "Bank account not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Używamy istniejącego banku do aktualizacji danych
+        serializer = BankSerializer(bank, data=request.data, partial=True)  # partial=True pozwala na aktualizację tylko części danych
+        if serializer.is_valid():
+            serializer.save()  # Zapisujemy zaktualizowane dane
+            return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class BudgetDetailView(APIView):
@@ -53,6 +68,27 @@ class BudgetDetailView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+class IncomeByDateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        family = request.user.family
+        # Pobierz wszystkie transakcje związane z bankami rodziny
+        transactions = Transaction.objects.filter(bank__family=family).order_by('date')
+
+        # Grupowanie według dat i pobieranie kwot
+        dates = []
+        income = []
+        for transaction in transactions:
+            dates.append(transaction.date)
+            income.append(transaction.amount)
+
+        return Response({
+            "dates": dates,
+            "income": income
+        })
+
 class CurrentMonthBalanceView(APIView):
     permission_classes = [IsAuthenticated]
 

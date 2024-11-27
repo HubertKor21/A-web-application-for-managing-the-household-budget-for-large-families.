@@ -107,6 +107,7 @@ class FamilyMembersView(views.APIView):
             serializer = CustomUserSerializer(members, many=True)
             
             return Response({
+                'id': family.id,
                 'member_count': family.member_count,
                 'members': serializer.data 
             }, status=status.HTTP_200_OK)

@@ -112,6 +112,10 @@ function Form({ route, method }) {
                                 <label className="label">
                                     <a href="#" className="label-text-alt link link-hover">Forgot password?</a>
                                 </label>
+                                <label className="label">
+                                    <a href="/register" className="label-text-alt link link-hover">Register Now!</a>
+                                </label>
+
                             </div>
                         )}
     

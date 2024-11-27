@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import CustomUserModel
 from invitations.models import Family
+from django.utils.timezone import now
 
 class Bank(models.Model):
     user = models.ForeignKey(CustomUserModel, on_delete=models.CASCADE, related_name='banks')
@@ -14,7 +15,12 @@ class Bank(models.Model):
 
     def save(self, *args, **kwargs):
         # Save the Bank instance
+        is_new = self.pk is None
+
         super().save(*args, **kwargs)
+        
+        if is_new:
+            Transaction.objects.create(bank=self,amount=self.balance,date=now().strftime("%Y-%m-%d"))
 
         # Get the family of the user
         family = self.user.family
@@ -37,3 +43,11 @@ class Budget(models.Model):
     def save(self, *args, **kwargs):
         # No changes needed here if there are no references to `family`
         super().save(*args, **kwargs)
+
+class Transaction(models.Model):
+    bank = models.ForeignKey(Bank, on_delete=models.CASCADE, related_name='transactions')
+    amount = models.FloatField()
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.bank.bank_name} - {self.amount} on {self.date}'

@@ -6,13 +6,13 @@ from .serializers import GroupsSerializers, CategorySerializer, GroupBalanceSeri
 from .models import Groups, Category
 from invitations.models import Family
 from rest_framework.views import APIView
-from django.db.models import Sum, Q
+from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from transactions.models import Bank, Budget
 from .models import Category
+from collections import defaultdict
+from django.utils import timezone
 
-
-from groups import models
 
 
 
@@ -116,9 +116,6 @@ class GroupBalanceView(APIView):
             serializer = GroupBalanceSerializer(groups, many=True)
             return Response(serializer.data)
         
-from django.db.models import Sum
-from collections import defaultdict
-
 class GroupBalanceForChartView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -198,3 +195,55 @@ class PreviousMonthBalanceView(APIView):
             "month": previous_month,
             "total_balance": total_balance
         })
+
+class GroupCategoryDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_group(self, group_id):
+        """
+        Pobiera grupę na podstawie ID i sprawdza, czy użytkownik ma do niej dostęp.
+        """
+        group = get_object_or_404(Groups, id=group_id)
+        if group.groups_author != self.request.user and group.family != self.request.user.family:
+            raise PermissionError("You do not have permission to access this group.")
+        return group
+
+    def get_category(self,group, category_id):
+        return get_object_or_404(group.categories, id=category_id)
+
+    def get(self, request, group_id, category_id):
+        """
+        Pobiera jedną kategorię z grupy na podstawie jej ID.
+        """
+        group = self.get_group(group_id)
+        category = get_object_or_404(group.categories, id=category_id)
+        serializer = CategorySerializer(category)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, group_id, category_id):
+        group = self.get_group(group_id)
+        # Correctly call get_category method to get the Category instance
+        category = self.get_category(group, category_id)
+        serializer = CategorySerializer(category, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, group_id, category_id):
+        group = self.get_group(group_id)
+        category = self.get_category(group, category_id)
+        serializer = CategorySerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, group_id, category_id):
+        """
+        Usuwa kategorię z grupy na podstawie jej ID.
+        """
+        group = self.get_group(group_id)
+        category = self.get_category(group, category_id)
+        category.delete()
+        return Response({"detail": "Category deleted successfully."}, status=status.HTTP_204_NO_CONTENT)

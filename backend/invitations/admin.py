@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Family, Invite
 
 class FamilyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'created_by','member_count')  # Display fields
+    list_display = ('id','name', 'created_by','member_count')  # Display fields
     search_fields = ('name',)
 class InviteAdmin(admin.ModelAdmin):
     list_display = ('email', 'family', 'is_accepted', 'created_at')  # Display fields

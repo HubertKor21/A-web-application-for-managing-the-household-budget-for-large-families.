@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Bank, Budget
+from .models import Bank, Budget, Transaction
 
 class BankAdmin(admin.ModelAdmin):
     list_display = ('user', 'bank_name', 'balance')
@@ -27,6 +27,14 @@ class BudgetAdmin(admin.ModelAdmin):
 
     readonly_fields = ('amount',)
 
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ('bank', 'amount', 'date')
+    list_filter = ('bank', 'date')
+    search_fields = ('bank__bank_name', 'bank__user__email')
+    ordering = ('-date',)  # Sortowanie po dacie w kolejności malejącej
+    date_hierarchy = 'date'  # Dodanie możliwości filtrowania po dacie
+
 # Rejestracja modeli w panelu administracyjnym
 admin.site.register(Bank, BankAdmin)
 admin.site.register(Budget, BudgetAdmin)
+admin.site.register(Transaction, TransactionAdmin)

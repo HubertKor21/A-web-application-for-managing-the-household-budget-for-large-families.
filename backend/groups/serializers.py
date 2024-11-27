@@ -7,7 +7,7 @@ from invitations.serializers import FamilySerializer
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['category_author','category_title','category_note','assigned_amount','created_at','category_type','bank']
+        fields = ['id','category_author','category_title','category_note','assigned_amount','created_at','category_type','bank']
         extra_kwargs = {'category_author': {'read_only': True}}
 
 

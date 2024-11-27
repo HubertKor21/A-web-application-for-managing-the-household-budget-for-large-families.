@@ -17,7 +17,7 @@ class ConfirmInvitationSerializer(serializers.Serializer):
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUserModel
-        fields = ['email', 'first_name', 'last_name']  
+        fields = ['id','email', 'first_name', 'last_name']  
 
 class FamilySerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)

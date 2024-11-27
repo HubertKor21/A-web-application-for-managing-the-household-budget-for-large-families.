@@ -20,6 +20,11 @@ body {
 	font-weight: 700;
 	font-size: 14px;
 }
+
+.scrollable-settlements {
+	max-height: 300px; 
+	overflow-y: auto; 
+  }
 .rdt_TableRow {
 	margin: 5px 0px;
 }
@@ -33,6 +38,7 @@ body {
 	width: 10px;
 	height: 10px;
 }
+
 ::-webkit-scrollbar * {
 	background: transparent;
 }

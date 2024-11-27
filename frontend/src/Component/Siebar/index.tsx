@@ -1,7 +1,7 @@
 // Sidebar.tsx
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Cog, SettingsOutline, Grid , CardOutline} from "react-ionicons";
+import { Cog, SettingsOutline, Grid , CardOutline, BarChartOutline, CashOutline } from "react-ionicons";
 
 const Sidebar = () => {
 	const [activePage, setActivePage] = useState("home");
@@ -11,6 +11,8 @@ const Sidebar = () => {
 	const sidebarItems = [
 		{ title: "home", icon: Grid, path: "/" },
 		{ title: "loan", icon: CardOutline, path: "/loan"},
+		{ title: "charts", icon: BarChartOutline, path: "/charts"},
+		{ title: "settlement", icon: CashOutline, path: "/settlement"},
 		{ title: "settings", icon: SettingsOutline, path: "/settings" },
 	];
 

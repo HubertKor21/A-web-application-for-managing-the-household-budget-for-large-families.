@@ -55,15 +55,12 @@ const ChartComponent = () => {
     fetchIncome();
   }, []);
 
-  // Łączymy posortowane daty i przypisujemy wydatki oraz dochody do odpowiednich dat
   const mergedData = [...new Set([...dates, ...incomeDates])].sort();
   const mergedExpensesAndIncome = mergedData.map((date) => {
-    const expense = salesData[dates.indexOf(date)] || 0; // Jeśli brak wydatków dla daty, ustawiamy 0
-    const income = incomeData[incomeDates.indexOf(date)] || 0; // Jeśli brak dochodów dla daty, ustawiamy 0
+    const expense = salesData[dates.indexOf(date)] || 0;
+    const income = incomeData[incomeDates.indexOf(date)] || 0;
     return { date, expense, income };
   });
-
-  console.log("Połączone dane:", mergedExpensesAndIncome);
 
   const options = {
     chart: {
@@ -71,7 +68,7 @@ const ChartComponent = () => {
     },
     xaxis: {
       type: "datetime",
-      categories: mergedData.map((date) => new Date(date).getTime()), // Przekształcamy daty na timestampy
+      categories: mergedData.map((date) => new Date(date).getTime()),
     },
   };
 
@@ -87,7 +84,7 @@ const ChartComponent = () => {
   ];
 
   return (
-    <div className="w-full bg-white shadow-sm rounded-xl py-4 px-3">
+    <div className="w-full bg-white shadow-md rounded-xl py-6 px-5">
       <Chart
         options={options}
         series={series}
