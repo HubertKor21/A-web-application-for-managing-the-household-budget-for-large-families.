@@ -14,10 +14,14 @@ interface FinanceSummaryProps {
 }
 
 const FinanceSummary: React.FC<FinanceSummaryProps> = ({ setShowForm }) => {
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);  // State for list of accounts
   const [newAccount, setNewAccount] = useState<Account>({ id: 0, bank_name: '', balance: 0 });
   const [editAccount, setEditAccount] = useState<Account | null>(null);  // State to track which account to edit
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
+
+  // New state for delete confirmation modal
+  const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<Account | null>(null);
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -26,7 +30,7 @@ const FinanceSummary: React.FC<FinanceSummaryProps> = ({ setShowForm }) => {
           api.get('/api/budget/'),
           api.get('/api/banks/'),
         ]);
-        setAccounts(bankResponse.data);
+        setAccounts(bankResponse.data);  // Set accounts state with fetched bank data
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -42,10 +46,10 @@ const FinanceSummary: React.FC<FinanceSummaryProps> = ({ setShowForm }) => {
           bank_name: newAccount.bank_name,
           balance: newAccount.balance,
         });
-        setAccounts([...accounts, response.data]);
-        setNewAccount({ id: 0, bank_name: '', balance: 0 });
-        setShowAddAccountModal(false); // Close the modal after submitting
-        toast.success('Konto zostało pomyślnie zapisane!');  // Show success toast
+        setAccounts([...accounts, response.data]);  // Add new account to state
+        setNewAccount({ id: 0, bank_name: '', balance: 0 });  // Reset the new account form
+        setShowAddAccountModal(false);  // Close the modal after submitting
+        toast.success('Your account has been successfully saved!');  // Show success toast
       } catch (error) {
         console.error('Error adding account:', error);
       }
@@ -61,11 +65,11 @@ const FinanceSummary: React.FC<FinanceSummaryProps> = ({ setShowForm }) => {
           balance: editAccount.balance,
         });
         const updatedAccounts = accounts.map(account =>
-          account.id === editAccount.id ? response.data : account
+          account.id === editAccount.id ? response.data : account  // Update the edited account
         );
-        setAccounts(updatedAccounts);
-        setEditAccount(null); // Close edit form
-        toast.success('Zmiany zostały zapisane pomyślnie!');  // Show success toast
+        setAccounts(updatedAccounts);  // Update the accounts state
+        setEditAccount(null);  // Close edit form
+        toast.success('Changes were saved successfully!');  // Show success toast
       } catch (error) {
         console.error('Error updating account:', error);
       }
@@ -88,13 +92,40 @@ const FinanceSummary: React.FC<FinanceSummaryProps> = ({ setShowForm }) => {
   };
 
   const handleEditClick = (account: Account) => {
-    setEditAccount(account);
+    setEditAccount(account);  // Set the account to be edited
   };
 
   const handleClose = () => {
     setShowForm(false);
-    setShowAddAccountModal(false); // Close both modals
-    setEditAccount(null); // Close edit form
+    setShowAddAccountModal(false);  // Close both modals
+    setEditAccount(null);  // Close edit form
+  };
+
+  // Show the confirmation modal
+  const handleDeleteRequest = (account: Account) => {
+    setAccountToDelete(account);  // Set the account to delete
+    setShowDeleteConfirmationModal(true);  // Show confirmation modal
+  };
+
+  // Confirm account deletion
+  const handleDeleteConfirm = async () => {
+    if (accountToDelete) {
+      try {
+        await api.delete(`/api/banks/${accountToDelete.id}/`);  // Call API to delete the account
+        setAccounts(accounts.filter(account => account.id !== accountToDelete.id));  // Remove the deleted account from the state
+        toast.success('Account has been deleted!');  // Show success toast
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        toast.error('Failed to delete account. Please try again.');  // Show error toast
+      }
+    }
+    setShowDeleteConfirmationModal(false);  // Close confirmation modal
+  };
+
+  // Cancel the delete action
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirmationModal(false);  // Close confirmation modal
+    setAccountToDelete(null);  // Clear the account to delete
   };
 
   return (
@@ -112,17 +143,26 @@ const FinanceSummary: React.FC<FinanceSummaryProps> = ({ setShowForm }) => {
         >
           &#10005;
         </button>
-        <h3 className="text-lg font-bold">Podsumowanie Finansowe</h3>
+        <h3 className="text-lg font-bold">Financial Summary</h3>
 
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {accounts.map((account) => (
             <div
               key={account.id}
-              className="p-4 bg-gray-100 rounded-lg shadow-md"
+              className="p-4 bg-gray-100 rounded-lg shadow-md relative"
               onClick={() => handleEditClick(account)}  // Allow clicking on account to edit
             >
               <h4 className="font-bold text-xl">{account.bank_name}</h4>
               <p className="text-sm text-gray-600">Saldo: {account.balance} zł</p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();  // Prevent modal opening when clicking delete
+                  handleDeleteRequest(account);  // Request account deletion
+                }}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+              >
+                🗑️
+              </button>
             </div>
           ))}
         </div>
@@ -151,7 +191,7 @@ const FinanceSummary: React.FC<FinanceSummaryProps> = ({ setShowForm }) => {
             >
               &#10005;
             </button>
-            <h3 className="text-lg font-bold">Dodaj Konto Bankowe</h3>
+            <h3 className="text-lg font-bold">Add Bank Account</h3>
 
             <form onSubmit={handleFormSubmit} className="mt-4 space-y-4">
               <input
@@ -174,9 +214,38 @@ const FinanceSummary: React.FC<FinanceSummaryProps> = ({ setShowForm }) => {
                 required
               />
               <button type="submit" className="bg-green-500 text-white p-2 rounded w-full">
-                Zapisz Konto
+                Save Account
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmationModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={handleDeleteCancel}  // Close the modal when clicking outside
+        >
+          <div
+            className="bg-white p-6 rounded-lg border text-black w-[80%] max-w-md relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold">Are you sure you want to delete your account?</h3>
+            <div className="mt-4 flex justify-between">
+              <button
+                onClick={handleDeleteConfirm}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+              >
+                Yes, delete
+              </button>
+              <button
+                onClick={handleDeleteCancel}
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -197,7 +266,7 @@ const FinanceSummary: React.FC<FinanceSummaryProps> = ({ setShowForm }) => {
             >
               &#10005;
             </button>
-            <h3 className="text-lg font-bold">Edytuj Konto Bankowe</h3>
+            <h3 className="text-lg font-bold">Edit Bank Account</h3>
 
             <form onSubmit={handleEditFormSubmit} className="mt-4 space-y-4">
               <input
@@ -220,7 +289,7 @@ const FinanceSummary: React.FC<FinanceSummaryProps> = ({ setShowForm }) => {
                 required
               />
               <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full">
-                Zapisz Zmiany
+              Save Changes
               </button>
             </form>
           </div>

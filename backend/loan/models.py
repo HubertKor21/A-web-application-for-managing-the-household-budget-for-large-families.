@@ -12,10 +12,13 @@ class Loan(models.Model):
     user = models.ForeignKey(CustomUserModel, on_delete=models.CASCADE,related_name="loans")
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='loans')
     name = models.CharField(max_length=255)
-    amount_reaming = models.DecimalField(max_digits=15, decimal_places=2, default=0.00, verbose_name="Kwota pozostała do spłaty")
-    loan_type = models.CharField(max_length=10, choices=LOAN_TYPE_CHOICES, default='fixed', verbose_name="Rodzaj rat")
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, verbose_name="Oprocentowanie")
-    payment_day = models.PositiveSmallIntegerField(verbose_name="Dzień płatności raty")  # Zakładając, że wartości będą od 1 do 31
+    amount_reaming = models.DecimalField(max_digits=15, decimal_places=2, default=0.00, 
+                                         verbose_name="Kwota pozostała do spłaty")
+    loan_type = models.CharField(max_length=10, choices=LOAN_TYPE_CHOICES, default='fixed', 
+                                 verbose_name="Rodzaj rat")
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.00,
+                                        verbose_name="Oprocentowanie")
+    payment_day = models.PositiveSmallIntegerField(verbose_name="Dzień płatności raty")  
     last_payment_date = models.DateField(verbose_name="Data spłaty ostatniej raty")
     installments_remaining = models.PositiveIntegerField(verbose_name="Pozostało rat")
 

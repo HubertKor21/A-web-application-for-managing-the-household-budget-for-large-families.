@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../api"; // Import axios setup
+import { toast, ToastContainer } from "react-toastify";
 
 interface Bank {
   id: number;
@@ -45,7 +46,7 @@ const Settlement = () => {
       const response = await api.get("/api/banks/");
       setBanks(response.data);
     } catch (error) {
-      console.error("Failed to fetch banks:", error);
+      toast.error("Failed to fetch banks:");
     }
   };
 
@@ -66,7 +67,7 @@ const Settlement = () => {
       const response = await api.get("/api/settlements/");
       setSettlements(response.data);
     } catch (error) {
-      console.error("Failed to fetch settlements:", error);
+      toast.error("Failed to fetch settlements:");
     }
   };
 
@@ -80,13 +81,13 @@ const Settlement = () => {
   // Add new settlement
   const handleAddSettlement = async () => {
     if (newSettlement.debtor === newSettlement.creditor) {
-      alert("Dłużnik i wierzyciel nie mogą być tą samą osobą.");
+      toast.error("Dłużnik i wierzyciel nie mogą być tą samą osobą.");
       return;
     }
 
     try {
       if (familyId === null) {
-        alert("Brak ID rodziny");
+        toast.error("Brak ID rodziny");
         return;
       }
 
@@ -100,8 +101,7 @@ const Settlement = () => {
       setSettlements((prevSettlements) => [...prevSettlements, response.data]);
       setNewSettlement({});
     } catch (error) {
-      console.error("Failed to add settlement:", error);
-      alert("Wystąpił błąd podczas dodawania rozliczenia.");
+      toast.error("Wystąpił błąd podczas dodawania rozliczenia.");
     }
   };
 
@@ -126,8 +126,7 @@ const Settlement = () => {
         );
       }
     } catch (error) {
-      console.error("Failed to toggle paid status:", error);
-      alert("Wystąpił błąd podczas zmiany statusu rozliczenia.");
+      toast.error("Wystąpił błąd podczas zmiany statusu rozliczenia.");
     }
   };
 
@@ -143,7 +142,7 @@ const Settlement = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Banks Section */}
         <div className="bg-white p-6 rounded-lg shadow-lg space-y-4">
-          <h2 className="text-2xl font-bold text-gray-700">Wpłaty</h2>
+          <h2 className="text-2xl font-bold text-gray-700">Payments</h2>
           <ul className="space-y-2">
             {familyMembers.map((member) => {
               const userBank = banks.find((bank) => bank.user === member.id);
@@ -167,8 +166,8 @@ const Settlement = () => {
                       max="100"
                     ></progress>
                     <div className="flex justify-between mt-2">
-                      <span className="text-sm text-gray-600">Procent wpłaty: {Math.round(progressValue)}%</span>
-                      <span className="text-sm text-gray-600">Całkowita wpłata: {totalDeposits} zł</span>
+                      <span className="text-sm text-gray-600">Payment percentage: {Math.round(progressValue)}%</span>
+                      <span className="text-sm text-gray-600">Total payment: {totalDeposits} zł</span>
                     </div>
                   </div>
                 </li>
@@ -179,7 +178,7 @@ const Settlement = () => {
 
         {/* Settlements Section */}
         <div className="bg-white p-6 rounded-lg shadow-lg space-y-4">
-  <h2 className="text-2xl font-bold text-gray-700">Rozliczenia</h2>
+  <h2 className="text-2xl font-bold text-gray-700">Settlements</h2>
 
         {/* Filter Buttons */}
         <div className="flex space-x-4">
@@ -187,19 +186,19 @@ const Settlement = () => {
             className={`btn ${filter === "all" ? "btn-primary" : "btn-outline"}`}
             onClick={() => setFilter("all")}
             >
-            Wszystkie
+            All
             </button>
             <button
             className={`btn ${filter === "paid" ? "btn-success" : "btn-outline"}`}
             onClick={() => setFilter("paid")}
             >
-            Spłacone
+            Paid off
             </button>
             <button
             className={`btn ${filter === "unpaid" ? "btn-error" : "btn-outline"}`}
             onClick={() => setFilter("unpaid")}
             >
-            Niespłacone
+            Unpaid
             </button>
         </div>
 
@@ -216,20 +215,20 @@ const Settlement = () => {
                 <li key={settlement.id} className="flex justify-between items-center">
                 <div className="space-y-1">
                     <div className="text-gray-800">
-                    <span className="font-semibold">Dłużnik:</span> {debtorEmail}
+                    <span className="font-semibold">Debtor:</span> {debtorEmail}
                     </div>
                     <div className="text-gray-800">
-                    <span className="font-semibold">Wierzyciel:</span> {creditorEmail}
+                    <span className="font-semibold">Creditor:</span> {creditorEmail}
                     </div>
                     <div className="text-gray-800">
-                    <span className="font-semibold">Kwota:</span> {settlement.amount} zł
+                    <span className="font-semibold">Sum:</span> {settlement.amount} zł
                     </div>
                 </div>
                 <button
                     onClick={() => handleTogglePaid(settlement.id)}
                     className={`btn ${settlement.is_paid ? "btn-success" : "btn-error"} text-white`}
                 >
-                    {settlement.is_paid ? "Spłacone" : "Niespłacone"}
+                    {settlement.is_paid ? "Paid off" : "Unpaid"}
                 </button>
                 </li>
             );
@@ -241,7 +240,7 @@ const Settlement = () => {
 
       {/* Add New Settlement */}
       <div className="mt-6">
-        <h3 className="text-lg font-bold text-gray-700">Dodaj Rozliczenie</h3>
+        <h3 className="text-lg font-bold text-gray-700">Add Settlement</h3>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -255,7 +254,7 @@ const Settlement = () => {
               onChange={(e) => setNewSettlement({ ...newSettlement, debtor: Number(e.target.value) })}
               className="select select-bordered w-full"
             >
-              <option value="">Wybierz Dłużnika</option>
+              <option value="">Select Debtor</option>
               {familyMembers.map((member) => (
                 <option key={member.id} value={member.id}>
                   {member.email}
@@ -267,7 +266,7 @@ const Settlement = () => {
               onChange={(e) => setNewSettlement({ ...newSettlement, creditor: Number(e.target.value) })}
               className="select select-bordered w-full"
             >
-              <option value="">Wybierz Wierzyciela</option>
+              <option value="">Select Creditor</option>
               {familyMembers.map((member) => (
                 <option key={member.id} value={member.id}>
                   {member.email}
@@ -280,13 +279,14 @@ const Settlement = () => {
             value={newSettlement.amount || ""}
             onChange={(e) => setNewSettlement({ ...newSettlement, amount: Number(e.target.value) })}
             className="input input-bordered w-full"
-            placeholder="Kwota"
+            placeholder="Sum"
           />
           <button type="submit" className="btn btn-primary">
-            Dodaj Rozliczenie
+            Submit
           </button>
         </form>
       </div>
+      <ToastContainer/>
     </div>
   );
 };

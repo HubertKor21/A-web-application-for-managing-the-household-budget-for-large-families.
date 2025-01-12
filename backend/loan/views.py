@@ -45,6 +45,13 @@ class LoanListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, loan_id=None):
+        try:
+            loan = Loan.objects.get(id=loan_id)
+            loan.delete()
+            return Response({"message": "Loan deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        except Loan.DoesNotExist:
+            return Response({"error": "Loan not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class CalculateRateView(APIView):

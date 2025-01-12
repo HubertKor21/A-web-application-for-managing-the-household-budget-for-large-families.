@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import DataTable from "react-data-table-component";
 import api from '../api'; // Ensure the path is correct
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
 
 interface Category {
   id: number;
@@ -29,15 +33,17 @@ interface Bank {
   bank_name: string;
 }
 
-const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
+const ExpensesSection: React.FC<{ group: Group , category: Category}> = ({ group, category }) => {
   const [banks, setBanks] = useState<Bank[]>([]); // List of available banks
-  const [selectedBank, setSelectedBank] = useState<Bank | null>(null); // Selected bank
-  const [isLoadingBanks, setIsLoadingBanks] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
+  const [, setIsLoadingBanks] = useState(true);
   const [modalData, setModalData] = useState<{ category_name: string; amount: string; note: string; bankId: number }>({
     category_name: '', amount: '', note: '', bankId: 0
   });
   const [updatedCategories, setUpdatedCategories] = useState<Category[]>(group.categories); // State for updated categories
   const [editCategory, setEditCategory] = useState<Category | null>(null); // State for the category being edited
+  const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
 
   // Fetch available banks
   useEffect(() => {
@@ -56,7 +62,7 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
     };
 
     fetchBanks();
-  }, []);
+  }, [group.id]);
 
   // Function for adding a category
   const addCategory = async (e: React.FormEvent) => {
@@ -75,27 +81,27 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
 
       try {
         const response = await api.post(`/api/groups/${group.id}/add-categories/`, newCategory);
-
-        // Log the response
-        console.log('Response from API:', response.data); // Check what the response contains
-
-        // Ensure the response contains the 'id' field
         const categoryWithId = { ...response.data, id: response.data.id };
-
-        // Check the category ID
-        console.log('Category ID:', categoryWithId.id); // Log the category ID
-
         setUpdatedCategories(prevCategories => [...prevCategories, categoryWithId]); // Update categories after adding
-
         setModalData({ category_name: '', amount: '', note: '', bankId: 0 }); // Reset modal data
-
-        // Close the modal after adding the category
         document.getElementById(`expense_modal_${group.id}`)?.close();
+        toast.success("Category added successfully")
       } catch (error) {
-        console.error('Error adding category:', error);
+        toast.error("Faild to add category");
       }
     } else {
-      alert("Amount must be greater than 0 and a bank must be selected.");
+      if (modalData.category_name.trim() == "") {
+        toast.error("Category name is required.");
+        return;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        toast.error("Amount must be a valid number greater than 0.");
+        return;
+      }
+      if (modalData.bankId <= 0) {
+        toast.error("A valid bank must be selected.");
+        return;
+      }
     }
   };
 
@@ -127,39 +133,53 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
 
       try {
         const response = await api.put(`/api/groups/${group.id}/categories/${editCategory.id}/`, updatedCategory);
-
-        // Log the response for debugging
-        console.log('Category updated:', response.data);
-
-        // Update the categories state with the updated category
         setUpdatedCategories((prevCategories) =>
           prevCategories.map((category) =>
             category.id === editCategory.id ? { ...category, ...response.data } : category
           )
         );
-
-        // Reset modal data and close modal
         setModalData({ category_name: '', amount: '', note: '', bankId: 0 });
         document.getElementById(`edit_expense_modal_${group.id}`)?.close();
+        toast.success("Category updated successfully!")
       } catch (error) {
-        console.error('Error updating category:', error);
+        toast.error('Error updating category:');
       }
     } else {
-      alert('Amount must be greater than 0 and a bank must be selected.');
+      toast.error('Amount must be greater than 0 and a bank must be selected.');
     }
   };
-
   const deleteCategory = async (categoryId: number) => {
-    if (window.confirm("Are you sure you want to delete this category?")) {
+    try {
+      await api.delete(`/api/groups/${group.id}/categories/${categoryId}/`);
+      setUpdatedCategories((prevCategories) =>
+        prevCategories.filter((category) => category.id !== categoryId)
+      );
+      toast.success("Category deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast.error("Failed to delete category. Please try again.");
+    } finally {
+      setIsDeleteCategoryModalOpen(false); // Zamknij modal po zakończeniu
+    }
+  };
+  
+  const openDeleteCategoryModal = (categoryId: number) => {
+    setCategoryToDelete(categoryId); // Ustaw ID kategorii do usunięcia
+    setIsDeleteCategoryModalOpen(true); // Otwórz modal
+  };
+  
+  
+
+  const deleteGroup = async () => {
+    {
       try {
-        await api.delete(`/api/groups/${group.id}/categories/${categoryId}/`);
-        setUpdatedCategories((prevCategories) =>
-          prevCategories.filter((category) => category.id !== categoryId)
-        );
-        alert("Category deleted successfully.");
+        await api.delete(`/api/groups/${group.id}/`);
+        toast.success("Group delete successfully!")
+        setIsDeleteModalOpen(false); // Close the modal after deletion
+        // Optionally, trigger a parent component update or navigation after deletion
       } catch (error) {
-        console.error("Error deleting category:", error);
-        alert("Failed to delete category. Please try again.");
+        toast.error("Error deleting group:");
+        alert("Failed to delete group. Please try again.");
       }
     }
   };
@@ -194,7 +214,7 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
       cell: (row: any) => (
         <div>
         <button onClick={() => handleEditCategory(row)} className="btn btn-warning mr-2">Edit</button>
-        <button onClick={() => deleteCategory(row.id)} className="btn btn-danger">Delete</button>
+        <button onClick={() => openDeleteCategoryModal(row.id)} className="btn btn-danger">Delete</button>
       </div>
       ),
     }
@@ -202,8 +222,16 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
 
   return (
     <div className="mb-4">
-      <h4 className="font-semibold">{group.groups_title}</h4>
-
+      <div className="flex justify-between items-center mb-2">
+        <h4 className="font-semibold">{group.groups_title}</h4>
+        <button
+          onClick={() => setIsDeleteModalOpen(true)} // Open the delete modal
+          className="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded"
+          aria-label="Delete group"
+        >
+          ✕
+        </button>
+      </div>
       {/* Table for categories */}
       <DataTable
         columns={columns}
@@ -248,15 +276,15 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
           />
           <label className="block text-sm">Select Bank:</label>
           <select
-            value={modalData.bankId}
-            onChange={(e) => setModalData(prev => ({ ...prev, bankId: parseInt(e.target.value) }))}
-            className="w-full p-2 rounded bg-gray-700 text-white"
-          >
-            <option value="" disabled selected={!modalData.bankId}>Select bank</option>
-            {banks.map(bank => (
-              <option key={bank.id} value={bank.id}>{bank.bank_name}</option>
-            ))}
-          </select>
+              value={modalData.bankId}
+              onChange={(e) => setModalData(prev => ({ ...prev, bankId: parseInt(e.target.value) }))}
+              className="w-full p-2 rounded bg-gray-700 text-white"
+            >
+              <option value="" disabled selected={!modalData.bankId}>Select bank</option>
+              {banks.map(bank => (
+                <option key={bank.id} value={bank.id}>{bank.bank_name}</option>
+              ))}
+            </select>
 
           <button onClick={addCategory} className="btn btn-primary mt-4">Add Category</button>
           <form method="dialog" className="modal-backdrop">
@@ -316,6 +344,51 @@ const ExpensesSection: React.FC<{ group: Group }> = ({ group }) => {
           </div>
         </dialog>
       )}
+      {isDeleteModalOpen && (
+        <dialog className="modal" open>
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Confirm Delete</h3>
+            <p>Are you sure you want to delete the group <strong>{group.groups_title}</strong>? This action cannot be undone.</p>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={deleteGroup}
+                className="btn btn-danger mr-2"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setIsDeleteModalOpen(false)} // Close the modal
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </dialog>
+      )}
+      {isDeleteCategoryModalOpen && (
+        <dialog className="modal" open>
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Confirm Delete</h3>
+            <p>Are you sure you want to delete this category? This action cannot be undone.</p>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => categoryToDelete !== null && deleteCategory(categoryToDelete)}
+                className="btn btn-danger mr-2"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setIsDeleteCategoryModalOpen(false)} // Zamknij modal
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </dialog>
+      )}
+
     </div>
   );
 };

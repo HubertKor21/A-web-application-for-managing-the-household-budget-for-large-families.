@@ -6,8 +6,6 @@ import uuid
 class Family(models.Model):
     name = models.CharField(max_length=150)
     created_by = models.ForeignKey('accounts.CustomUserModel', null=True, on_delete=models.CASCADE,related_name='fam')
-
-    # We define the ForeignKey field directly here, not as a @property
     members = models.ManyToManyField('accounts.CustomUserModel', related_name='families' , blank=True)
 
     def __str__(self):
@@ -23,7 +21,6 @@ class Invite(models.Model):
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_accepted = models.BooleanField(default=False)
-
     family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name='invites')
 
     def get_user_model(self):

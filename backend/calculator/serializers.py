@@ -9,7 +9,7 @@ class SavingsCalculatorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SavingsCalculator
-        fields = ['id', 'user', 'expense_category', 'monthly_spending', 'suggested_savings', 'potential_savings', 'created_at']
+        fields = ['id', 'user', 'expense_category', 'monthly_spending', 'user_savings_percent','suggested_savings', 'potential_savings', 'created_at']
 
     def validate_user(self, value):
         if value is None:

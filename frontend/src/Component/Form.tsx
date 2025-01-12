@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 import background from "../assets/images/blue-blank.jpg";
+import { toast, ToastContainer} from "react-toastify";
 
 function Form({ route, method }) {
     const [email, setEmail] = useState("");
@@ -28,13 +29,12 @@ function Form({ route, method }) {
             const res = await api.post(route, data);
             if (method === "login") {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
-                localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
                 navigate("/");
             } else {
                 navigate("/login");
             }
         } catch (error) {
-            alert(error);
+            toast.error("Incorrect login details")
         } finally {
             setLoading(false);
         }
@@ -42,6 +42,7 @@ function Form({ route, method }) {
 
     return (
         <div className="min-h-screen flex">
+             <ToastContainer/>
             {/* Left side - Login form */}
             <div className="flex-1 flex items-center justify-center bg-white">
                 <div className="w-full max-w-sm p-6">
@@ -110,9 +111,6 @@ function Form({ route, method }) {
                                     required
                                 />
                                 <label className="label">
-                                    <a href="#" className="label-text-alt link link-hover">Forgot password?</a>
-                                </label>
-                                <label className="label">
                                     <a href="/register" className="label-text-alt link link-hover">Register Now!</a>
                                 </label>
 
@@ -126,6 +124,7 @@ function Form({ route, method }) {
                         </div>
                     </form>
                 </div>
+                
             </div>
     
             {/* Right side - Background image */}
@@ -135,6 +134,7 @@ function Form({ route, method }) {
             >
                 {/* Optional content for the background side */}
             </div>
+           
         </div>
     );
 }

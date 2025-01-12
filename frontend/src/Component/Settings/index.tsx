@@ -15,6 +15,7 @@ interface FamilyData {
     family_name: string;
 }
 
+
 interface Group {
     groups_title: string;
     groups_author: number;
@@ -37,7 +38,8 @@ function SettingTable() {
     const [familyData, setFamilyData] = useState<FamilyData | null>(null);
     const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
     const [groups, setGroups] = useState<Group[]>([]);
-
+    const [familysName, setFamilysName] = useState("");
+    
     useEffect(() => {
         // Fetch family members when the component loads
         const fetchFamilyMembers = async () => {
@@ -64,6 +66,19 @@ function SettingTable() {
         };
         fetchGroups();
     }, []);
+
+    useEffect(() => {
+        const fetchFamilyName = async () => {
+            try {
+                const respone = await api.get("/api/families/name/")
+                setFamilysName(respone.data.name);
+                console.log(familysName);
+            } catch (error) {
+                console.log("Error fetching ", error);
+            }
+        };
+        fetchFamilyName();
+    },[]);
 
     const generatePDF = () => {
         const doc = new jsPDF();
@@ -123,9 +138,8 @@ function SettingTable() {
         <div className="md:w-[95%] w-[80%] bg-white shadow-sm rounded-xl mt-10 px-5 py-4 mb-8">
             <div className="flex w-full items-center justify-between mb-6">
                 <div className="md:w-[45%] w-[80%] bg-white shadow-sm rounded-xl mt-10 px-5 py-4 mb-8">
-                    <h2 className="text-lg font-semibold mb-4">Ustawienia</h2>
-                    <h3 className="text-md font-medium">Tu bedzie nazwa rodziny</h3>
-                    <p className="text-sm mt-2">{familyData?.family_name || "Tu będzie nazwa rodziny"}</p>
+                    <h2 className="text-lg font-semibold mb-4">Settings</h2>
+                    <h3 className="text-md font-medium">Family name: {familysName}</h3>
                     <div className="mt-4 flex gap-2">
                         <button
                             className="bg-gray-600 text-white px-4 py-2 rounded-md"
@@ -133,9 +147,8 @@ function SettingTable() {
                         >
                             Eksport
                         </button>
-                        <button className="bg-red-400 text-white px-4 py-2 rounded-md">Zacznij od nowa</button>
                     </div>
-                    <h3 className="text-md font-medium mt-6">Dostęp do budżetu</h3>
+                    <h3 className="text-md font-medium mt-6">Access to budget</h3>
                     <p className="text-sm mt-2">Email</p>
                     <form onSubmit={handleSubmit}>
                         <div className="flex gap-2">
@@ -144,7 +157,7 @@ function SettingTable() {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Wprowadź email"
+                                placeholder="Enter email"
                                 required
                             />
                             <input
@@ -152,15 +165,15 @@ function SettingTable() {
                                 type="text"
                                 value={familyName}
                                 onChange={(e) => setFamilyName(e.target.value)}
-                                placeholder="Wprowadź nazwę rodziny"
+                                placeholder="Enter the family name"
                                 required
                             />
                             <button type="submit" className="ml-2 px-3 rounded-xl shadow-sm bg-green-600 text-black">
-                                <p>Wyślij</p>
+                                <p>Send</p>
                             </button>
                         </div>
                     </form>
-                    <h3 className="text-md font-medium mt-6">Członkowie rodziny:</h3>
+                    <h3 className="text-md font-medium mt-6">Family members:</h3>
                     <p className="text-sm mt-2 text-gray-400">
                         {familyMembers ? (
                             familyMembers.map((member, index) => (
@@ -172,7 +185,7 @@ function SettingTable() {
                                 </span>
                             ))
                         ) : (
-                            <span>Brak członków rodziny</span>
+                            <span>No family members</span>
                         )}
                     </p>
                 </div>

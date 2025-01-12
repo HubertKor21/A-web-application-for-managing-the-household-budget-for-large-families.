@@ -165,7 +165,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 # rest-framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # or 'rest_framework_simplejwt.authentication.JWTAuthentication'
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
@@ -187,7 +187,7 @@ SPECTACULAR_SETTINGS = {
 # simple jwt
 from datetime import timedelta
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(hours=2),
 }
 
@@ -222,4 +222,4 @@ AUTH_USER_MODEL = "accounts.CustomUserModel"
 DJANGO_REST_INVITATION_TOKEN_EXPIRY_TIME = 24 
 
 FRONTEND_URL = "http://localhost:5173/"
-
+BACKEND_URL = "http://localhost:8000/"

@@ -18,6 +18,11 @@ import Layout_settlements from './layout-settlements';
 import Settlement from './Component/Settlement';
 import Layout_charts from './layout-charts';
 import Charts from './Component/Charts';
+import Layout_goals from './layout-goals';
+import SavingGoals from './Component/SavingGoals';
+import Layout_calculator from './layout-calculator';
+import Calculator from './Component/Calculator';
+import FamilyVerification from './Pages/FamilyVerification';
 
 
 
@@ -35,13 +40,11 @@ const App: React.FC = () => {
             <Layout>
               <StatCards/>
               <OrdersTable/>
-              <SalesChart/>
             </Layout>
           </ProtectedRoute>
         }/>
         <Route path="login" element={<Login />} />
         <Route path="register" element={<RegisterAndLogout />} />
-        <Route path="change-password" element={<ChangePassword/>} />
         <Route path="settings" element={
         <ProtectedRoute>
           <Layout_settings>
@@ -69,9 +72,23 @@ const App: React.FC = () => {
               <Charts/>
             </Layout_charts>
           </ProtectedRoute>
+        }/>
+        <Route path='goals' element={
+          <ProtectedRoute>
+            <Layout_goals>
+              <SavingGoals/>
+            </Layout_goals>
+          </ProtectedRoute>
         }>
-
         </Route>
+        <Route path='calculator' element={
+          <ProtectedRoute>
+            <Layout_calculator>
+              <Calculator/>
+            </Layout_calculator>
+          </ProtectedRoute>
+        }/>
+        <Route path="api/v1/confirm-invite/:token/" element={<FamilyVerification />} />
         <Route path="dj-rest-auth/registration/account-confirm-email/:key/" element={<EmailVerification/>}></Route>
         <Route path="reset/password/confirm/:uid/:token" element={<ResetPasswordConfirm/>}></Route>
       </Routes>

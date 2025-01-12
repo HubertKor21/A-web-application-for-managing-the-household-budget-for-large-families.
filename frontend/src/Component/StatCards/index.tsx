@@ -19,19 +19,22 @@ const StatCards = () => {
   const [totalIncome, setTotalIncome] = useState<number>(0);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
   const [users, setUsers] = useState<number>(0);
+  const [monthlyBalance, setMonthlyBalance] = useState<number>(0);
   const [categoryCount, setCategoryCount] = useState<number>(0);  // Nowy stan na licznik kategorii
 
   // Fetch financial summary and bank accounts from backend
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const [budgetResponse, bankResponse] = await Promise.all([
+        const [budgetResponse, bankResponse, monthlyResponse] = await Promise.all([
           api.get("/api/budget/"),
           api.get("/api/banks/"),
+          api.get("/api/balance/monthly/"),
         ]);
 
         setTotalIncome(budgetResponse.data.total_income);
         setAccounts(bankResponse.data);
+        setMonthlyBalance(monthlyResponse.data.total_balance);
       } catch (error) {
         console.error("Error fetching data:", error);
 
@@ -105,7 +108,7 @@ const StatCards = () => {
     },
     {
       title: "Income",
-      value: `${accounts.reduce((acc, account) => acc + account.balance, 0)} zł`,
+      value: `${monthlyBalance} zł`,
       icon: salesIcon,
       profit: true,
       percentage: "4.7%",

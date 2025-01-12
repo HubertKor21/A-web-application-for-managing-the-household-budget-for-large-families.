@@ -18,10 +18,11 @@ class Category(models.Model):
     category_note = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
     assigned_amount = models.FloatField(default=0)
-    category_type = models.CharField(max_length=7, choices=CATEGORY_TYPE_CHOICES, default='expense')
-    category_author = models.ForeignKey(CustomUserModel, on_delete=models.CASCADE, null=True, blank=True)
-    bank = models.ForeignKey(Bank, on_delete=models.SET_NULL, null=True, blank=True)  # Zmieniono na przypisanie banku do kategorii
-
+    category_type = models.CharField(max_length=7, 
+            choices=CATEGORY_TYPE_CHOICES, default='expense')
+    category_author = models.ForeignKey(CustomUserModel, 
+            on_delete=models.CASCADE, null=True, blank=True)
+    bank = models.ForeignKey(Bank, on_delete=models.SET_NULL, null=True, blank=True) 
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -41,8 +42,9 @@ class Category(models.Model):
 class Groups(models.Model):
     groups_title = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
-    groups_author = models.ForeignKey(CustomUserModel, on_delete=models.CASCADE, related_name='authored_groups')
-    categories = models.ManyToManyField(Category, related_name='groups')  # Zmiana z ForeignKey na ManyToManyField
+    groups_author = models.ForeignKey(CustomUserModel, on_delete=models.CASCADE, 
+    related_name='authored_groups')
+    categories = models.ManyToManyField(Category, related_name='groups') 
     family = models.ForeignKey(Family, on_delete=models.CASCADE, null=True,blank=True)
 
     def get_total_expenses(self):

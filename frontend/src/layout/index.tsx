@@ -45,7 +45,7 @@ const Layout = ({ children }: Props) => {
   };
 
   return (
-    <div className="w-screen bg-slate-100 relative">
+    <div className="w-screen h-full bg-slate-100 relative">
       <Sidebar />
       <Navbar />
       <div className="ml-[76px] mt-[70px] border-t border-gray-200 px-6 py-3 box-border flex flex-col">

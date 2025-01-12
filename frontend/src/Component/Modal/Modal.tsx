@@ -25,8 +25,8 @@ export function Modal({ isOpen, onClose, onConfirm, title, inputPlaceholder, inp
                     className="input input-bordered w-full mb-4"
                 />
                 <div className="flex justify-end space-x-2">
-                    <button onClick={onClose} className="btn btn-secondary">Anuluj</button>
-                    <button onClick={onConfirm} className="btn btn-primary">Dodaj</button>
+                    <button onClick={onConfirm} className="btn btn-primary">Add</button>
+                    <button onClick={onClose} className="btn btn-secondary">Cancel</button>
                 </div>
             </div>
         </div>

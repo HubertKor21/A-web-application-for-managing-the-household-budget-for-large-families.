@@ -28,11 +28,11 @@ class BankListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def put(self, request, pk):
+    def put(self, request, bank_id):
         """Aktualizacja istniejącego konta bankowego"""
         try:
             # Pobieramy bank na podstawie ID (pk)
-            bank = Bank.objects.get(pk=pk, family=request.user.family)  # Filtrowanie po rodzinie
+            bank = Bank.objects.get(pk=bank_id, family=request.user.family)  # Filtrowanie po rodzinie
         except Bank.DoesNotExist:
             return Response({"detail": "Bank account not found."}, status=status.HTTP_404_NOT_FOUND)
         
@@ -42,6 +42,14 @@ class BankListCreateView(APIView):
             serializer.save()  # Zapisujemy zaktualizowane dane
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, bank_id):
+        try:
+            bank = Bank.objects.get(pk=bank_id, family=request.user.family)  # Poprawka: użycie `pk=bank_id` zamiast `bank_id`
+            bank.delete()
+            return Response({"detail": "Bank account deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        except Bank.DoesNotExist:
+            return Response({"detail": "Bank account not found."}, status=status.HTTP_404_NOT_FOUND)
 
 class BudgetDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -99,10 +107,10 @@ class CurrentMonthBalanceView(APIView):
         current_month = now.month
 
         # Calculate the total balance for the current month
-        total_balance = Budget.objects.filter(
-            created_at__year=current_year,
-            created_at__month=current_month,
-            family_id=request.user.family
+        total_balance = Transaction.objects.filter(
+            date__year=current_year,
+            date__month=current_month,
+            bank__family_id=request.user.family
         ).aggregate(total=Sum('amount'))['total'] or 0
 
         return Response({
@@ -119,3 +127,72 @@ class BankNameListView(APIView):
         banks = Bank.objects.filter(family = family)
         serializer = BankNameSerializer(banks, many=True)
         return Response(serializer.data)
+    
+
+class PreviousMonthBalanceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        now = timezone.now()
+        current_year = now.year
+        current_month = now.month
+
+        # Ustalamy poprzedni miesiąc
+        if current_month == 1:
+            previous_month = 12
+            year = current_year - 1
+        else:
+            previous_month = current_month - 1
+            year = current_year
+
+        # Pobieramy dane z poprzedniego miesiąca
+        total_balance = Transaction.objects.filter(
+            date__year=year,
+            date__month=previous_month,
+            bank__family_id=request.user.family
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
+        return Response({
+            "year": year,
+            "month": previous_month,
+            "total_balance": total_balance
+        })
+    
+class AllPreviousMonthBalanceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        now = timezone.now()
+        current_year = now.year
+
+        # Lista wyników dla każdego miesiąca
+        monthly_balances = []
+
+        # Iterujemy przez miesiące 1-12
+        for month in range(1, 13):
+            # Suma transakcji dla danego miesiąca
+            total_balance = Transaction.objects.filter(
+                date__year=current_year,
+                date__month=month,
+                bank__family=request.user.family
+            ).aggregate(total=Sum('amount'))['total'] or 0
+
+            # Suma sald bankowych oparta na transakcjach w danym miesiącu
+            total_expenses = Transaction.objects.filter(
+                date__year=current_year,
+                date__month=month,
+                bank__family=request.user.family
+            ).aggregate(total=Sum('bank__balance'))['total'] or 0
+
+            # Dodajemy wynik do listy
+            monthly_balances.append({
+                "month": month,
+                "total_balance": total_balance,
+                "total_expenses": total_expenses,
+            })
+
+        # Zwracamy odpowiedź
+        return Response({
+            "year": current_year,
+            "monthly_balances": monthly_balances
+        })

@@ -1,5 +1,7 @@
 from django.db import models
 from accounts.models import CustomUserModel
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class SavingsGoal(models.Model):
     GOAL_CHOICES = [
@@ -17,6 +19,9 @@ class SavingsGoal(models.Model):
     due_date = models.DateField()  # Termin realizacji celu
     user = models.ForeignKey(CustomUserModel, on_delete=models.CASCADE, related_name='savings_goals')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Kwota dodana przez użytkownika
+    added_amount = models.FloatField(default=0)
 
     def progress(self):
         """Oblicza postęp w realizacji celu"""

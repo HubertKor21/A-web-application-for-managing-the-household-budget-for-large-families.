@@ -79,9 +79,10 @@ const OrdersTable = () => {
 
     // Month names for display
     const monthNames = [
-        'STYCZEŃ', 'LUTY', 'MARZEC', 'KWIECIEŃ', 'MAJ', 'CZERWIEC',
-        'LIPIEC', 'SIERPIEŃ', 'WRZESIEŃ', 'PAŹDZIERNIK', 'LISTOPAD', 'GRUDZIEŃ'
+        'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+        'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
     ];
+    
 
     return (
         <div className="md:w-[95%] w-[80%] bg-white shadow-sm rounded-xl mt-10 px-5 py-4 mb-8">
@@ -90,13 +91,13 @@ const OrdersTable = () => {
                     {`${monthNames[currentMonth - 1]} ${currentYear}`}
                 </span>
                 <div>
-                    <button onClick={() => setIsModalOpen(true)} className="btn btn-primary">Dodaj</button>
+                    <button onClick={() => setIsModalOpen(true)} className="btn btn-primary">Add</button>
                     <Modal
                         isOpen={isModalOpen}
                         onClose={() => setIsModalOpen(false)}
                         onConfirm={addGroupHandler}
-                        title="Dodaj nową grupę"
-                        inputPlaceholder="Tytuł grupy"
+                        title="Add new group"
+                        inputPlaceholder="Tittle group"
                         inputValue={newGroupTitle}
                         setInputValue={setNewGroupTitle}
                     />

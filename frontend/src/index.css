@@ -10,6 +10,7 @@ body {
 	padding: 0;
 	min-width: 100vw;
 	overflow-x: hidden;
+	background: #F1F5F9;
 }
 
 .rdt_TableHeadRow {

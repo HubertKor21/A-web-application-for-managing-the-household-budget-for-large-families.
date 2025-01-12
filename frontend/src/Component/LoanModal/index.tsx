@@ -31,11 +31,12 @@ function LoanModal({ isOpen, onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-[90%] md:w-[50%] p-6">
-        <h2 className="text-xl font-bold mb-4">Dodaj Kredyt</h2>
-        <form onSubmit={handleSubmit}>
+      <div className="bg-white rounded-lg shadow-lg md:w-[30%] p-6">
+        <h2 className="text-xl font-bold mb-4 w-full">Add Loan</h2>
+        <form onSubmit={handleSubmit}
+        className=''>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Nazwa</label>
+            <label className="block text-sm font-medium mb-1">Name</label>
             <input
               type="text"
               name="name"
@@ -47,7 +48,7 @@ function LoanModal({ isOpen, onClose, onSubmit }) {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Kwota pozostała do spłaty</label>
+            <label className="block text-sm font-medium mb-1">Amount remaining to be paid</label>
             <input
               type="number"
               name="amount_reaming"
@@ -59,20 +60,20 @@ function LoanModal({ isOpen, onClose, onSubmit }) {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Rodzaj rat</label>
+            <label className="block text-sm font-medium mb-1">Type of installments</label>
             <select
               name="loan_type"
               value={formData.loan_type}
               onChange={handleChange}
               className="w-full border rounded-md px-3 py-2"
             >
-              <option value="fixed">Stałe</option>
-              <option value="decreasing">Malejące</option>
+              <option value="fixed">Constantly</option>
+              <option value="decreasing">Decreasing</option>
             </select>
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Oprocentowanie (%)</label>
+            <label className="block text-sm font-medium mb-1">Interest (%)</label>
             <input
               type="number"
               name="interest_rate"
@@ -85,7 +86,7 @@ function LoanModal({ isOpen, onClose, onSubmit }) {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Dzień płatności raty</label>
+            <label className="block text-sm font-medium mb-1">Installment payment date</label>
             <input
               type="number"
               name="payment_day"
@@ -99,7 +100,7 @@ function LoanModal({ isOpen, onClose, onSubmit }) {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Data spłaty ostatniej raty</label>
+            <label className="block text-sm font-medium mb-1">Last installment due date</label>
             <input
               type="date"
               name="last_payment_date"
@@ -111,7 +112,7 @@ function LoanModal({ isOpen, onClose, onSubmit }) {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Pozostało rat</label>
+            <label className="block text-sm font-medium mb-1">Remaining installments</label>
             <input
               type="number"
               name="installments_remaining"
@@ -122,19 +123,19 @@ function LoanModal({ isOpen, onClose, onSubmit }) {
             />
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-center">
             <button
               type="button"
               onClick={onClose}
               className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md mr-2"
             >
-              Anuluj
+              Cancel
             </button>
             <button
               type="submit"
               className="bg-blue-500 text-white px-4 py-2 rounded-md"
             >
-              Dodaj
+              Add
             </button>
           </div>
         </form>

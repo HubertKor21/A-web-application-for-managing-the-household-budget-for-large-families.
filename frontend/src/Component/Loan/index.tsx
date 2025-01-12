@@ -3,8 +3,10 @@ import LoanModal from "../LoanModal";
 import api from "../../api";
 import jsPDF from "jspdf";
 import "jspdf-autotable"; // Dla obsługi tabel
+import { toast, ToastContainer } from "react-toastify";
 
 interface LoanFormData {
+  id: number;
   name: string;
   amount_reaming: number;
   loan_type: "fixed" | "decreasing";
@@ -27,13 +29,17 @@ function LoanPage() {
   const [isModalOpen, setModalOpen] = useState(false);
   const [loans, setLoans] = useState<LoanFormData[]>([]);
   const [selectedLoanIndex, setSelectedLoanIndex] = useState<number | null>(null);
+  const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+  const [loanToDelete, setLoanToDelete] = useState<number | null>(null);
   const [, setLoanData] = useState<LoanInstallmentData | null>(null);
   const [tableData, setTableData] = useState<
-    { installmentNumber: number; capitalPart: string; interestPart: string; totalInstallment: string }[] 
+    { installmentNumber: number; capitalPart: string; interestPart: string; totalInstallment: string }[]
   >([]);
-
+  const [isDownloadModalOpen, setDownloadModalOpen] = useState(false);
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
+  const handleOpenDownloadModal = () => setDownloadModalOpen(true);
+  const handleCloseDownloadModal = () => setDownloadModalOpen(false);
 
   const handleAddLoan = async (data: LoanFormData) => {
     try {
@@ -51,7 +57,7 @@ function LoanPage() {
 
     if (selectedIndex !== null) {
       try {
-        const response = await api.get(`/api/loan/${selectedIndex + 1}/installments/`);
+        const response = await api.get(`/api/loan/${loans[selectedIndex].id}/installments/`);
         setLoanData(response.data);
 
         const installments = response.data.installments || [];
@@ -79,12 +85,12 @@ function LoanPage() {
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-    const tableColumns = ["Numer raty", "Część kapitałowa raty", "Część odsetkowa raty", "Wysokość raty"];
+    const tableColumns = ["Numer raty", "Czesc kapitalowa raty", "Czesc odsetkowa raty", "Wysokosc raty"];
     const tableRows = tableData.map(row => [
       row.installmentNumber,
-      `${row.capitalPart} zł`,
-      `${row.interestPart} zł`,
-      `${row.totalInstallment} zł`,
+      `${row.capitalPart} zl`,
+      `${row.interestPart} zl`,
+      `${row.totalInstallment} zl`,
     ]);
 
     // Obliczanie sum
@@ -103,6 +109,22 @@ function LoanPage() {
     });
 
     doc.save("Tabela_rat_kredytu.pdf");
+    toast.success("PDF został pobrany!");
+
+  };
+
+  const handleDeleteLoan = async () => {
+    if (loanToDelete !== null) {
+      try {
+        await api.delete(`/api/loans/${loanToDelete}/`);
+        setLoans((prevLoans) => prevLoans.filter((loan) => loan.id !== loanToDelete));
+      } catch (error) {
+        console.error("Failed to delete loan:", error);
+      } finally {
+        setConfirmDeleteModal(false);
+        setLoanToDelete(null);
+      }
+    }
   };
 
   useEffect(() => {
@@ -144,14 +166,14 @@ function LoanPage() {
             Wybierz kredyt
           </option>
           {loans.map((loan, index) => (
-            <option key={index} value={index}>
+            <option key={loan.id} value={index}>
               {loan.name} - {loan.amount_reaming} zł
             </option>
           ))}
         </select>
 
         <button
-          onClick={handleDownloadPDF}
+          onClick={handleOpenDownloadModal}
           className="bg-green-600 text-white px-5 ml-4 py-3 rounded-lg shadow-md hover:bg-green-700 transition duration-300"
           disabled={tableData.length === 0}
         >
@@ -167,10 +189,64 @@ function LoanPage() {
           <p><strong>Oprocentowanie:</strong> {loans[selectedLoanIndex].interest_rate}%</p>
           <p><strong>Rata pozostała:</strong> {loans[selectedLoanIndex].installments_remaining}</p>
           <p><strong>Data ostatniej spłaty:</strong> {loans[selectedLoanIndex].last_payment_date}</p>
+          <div>
+            <button 
+              onClick={() => {
+                setLoanToDelete(loans[selectedLoanIndex].id);
+                setConfirmDeleteModal(true);
+              }}
+              className="text-red-500 hover:text-red-700 transition duration-300"
+              title="Usuń kredyt"
+            >
+              X
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Render Table */}
+      {confirmDeleteModal && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow-md text-center">
+            <p>Czy na pewno chcesz usunąć ten kredyt?</p>
+            <div className="mt-4 flex justify-center gap-4">
+              <button
+                onClick={handleDeleteLoan}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-700 transition duration-300"
+              >
+                Tak
+              </button>
+              <button
+                onClick={() => setConfirmDeleteModal(false)}
+                className="bg-gray-300 px-4 py-2 rounded-lg shadow hover:bg-gray-400 transition duration-300"
+              >
+                Nie
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isDownloadModalOpen && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow-md text-center">
+            <p>Chcesz pobrać tabelę rat kredytu jako PDF?</p>
+            <div className="mt-4 flex justify-center gap-4">
+              <button
+                onClick={handleDownloadPDF}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-300"
+              >
+                Pobierz PDF
+              </button>
+              <button
+                onClick={handleCloseDownloadModal}
+                className="bg-gray-300 px-4 py-2 rounded-lg shadow hover:bg-gray-400 transition duration-300"
+              >
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {tableData.length > 0 && (
         <div className="mt-8 bg-gray-50 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold mb-4">Szczegóły Rat Kredytu</h3>
@@ -202,7 +278,9 @@ function LoanPage() {
           </table>
         </div>
       )}
+      <ToastContainer />
     </div>
+    
   );
 }
 
